@@ -1,0 +1,258 @@
+<div class="modal-overlay" *ngIf="isVisible" (click)="onBackdropClick($event)">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Upload to ACC</h2>
+      <button class="close-button" (click)="onClose()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <!-- Upload Progress Indicator -->
+      <div class="upload-progress" *ngIf="uploading">
+        <div class="progress-header">
+          <h4>Uploading File...</h4>
+          <span class="progress-text">{{ uploadProgress }}%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="uploadProgress"></div>
+        </div>
+        <p class="file-name" *ngIf="selectedFile">{{ selectedFile.name }}</p>
+      </div>
+      
+      <div class="tree-section">
+        <div class="tree-header">
+          <h3>Available Hubs, Projects & Folders</h3>
+        </div>
+        
+        <div class="tree-container">
+          <div class="loading-spinner" *ngIf="loading">
+            <div class="spinner"></div>
+            <p>Loading upload hubs...</p>
+          </div>
+          
+          <div class="tree-content" *ngIf="!loading">
+            <div class="tree-node" *ngFor="let node of treeData">
+              <div class="node-content" (click)="toggleNode(node)">
+                <div class="node-icon">
+                  <!-- Hub icon -->
+                  <svg *ngIf="node.type === 'uploadHub'" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M9 22V12H15V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <!-- Project icon -->
+                  <svg *ngIf="node.type === 'uploadProject'" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <!-- Folder icon -->
+                  <svg *ngIf="node.type === 'uploadFolder'" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 20H20C21.1046 20 22 19.1046 22 18V8C22 6.89543 21.1046 6 20 6H12L10 4H4C2.89543 4 2 4.89543 2 6V18C2 19.1046 2.89543 20 4 20Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+                
+                <div class="node-expand-icon" *ngIf="node.type === 'uploadHub' || node.type === 'uploadProject'">
+                  <svg *ngIf="!node.expanded" width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <svg *ngIf="node.expanded" width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+                
+                <div class="node-loading" *ngIf="node.loading">
+                  <div class="mini-spinner"></div>
+                </div>
+                
+                <span class="node-name">{{ node.name }}</span>
+                
+                <!-- Upload button only for folders -->
+                <button *ngIf="node.type === 'uploadFolder'" 
+                        class="upload-button" 
+                        (click)="onUploadButtonClick(node); $event.stopPropagation()"
+                        [disabled]="uploading">
+                  <svg *ngIf="!uploading" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <div *ngIf="uploading" class="upload-spinner"></div>
+                  {{ uploading ? 'Uploading...' : 'Upload' }}
+                </button>
+              </div>
+              
+              <div class="node-children" *ngIf="node.expanded && node.children && node.children.length > 0">
+                <div class="child-node" *ngFor="let child of node.children">
+                  <div class="node-content child-content" (click)="toggleNode(child)">
+                    <div class="node-icon">
+                      <!-- Project icon for child nodes -->
+                      <svg *ngIf="child.type === 'uploadProject'" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                      <!-- Folder icon for child nodes -->
+                      <svg *ngIf="child.type === 'uploadFolder'" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 20H20C21.1046 20 22 19.1046 22 18V8C22 6.89543 21.1046 6 20 6H12L10 4H4C2.89543 4 2 4.89543 2 6V18C2 19.1046 2.89543 20 4 20Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </div>
+                    
+                    <div class="node-expand-icon" *ngIf="child.type === 'uploadProject'">
+                      <svg *ngIf="!child.expanded" width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                      <svg *ngIf="child.expanded" width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </div>
+                    
+                    <div class="node-loading" *ngIf="child.loading">
+                      <div class="mini-spinner"></div>
+                    </div>
+                    
+                    <span class="node-name">{{ child.name }}</span>
+                    
+                    <!-- Upload button only for folders -->
+                    <button *ngIf="child.type === 'uploadFolder'" 
+                            class="upload-button" 
+                            (click)="onUploadButtonClick(child); $event.stopPropagation()"
+                            [disabled]="uploading">
+                      <svg *ngIf="!uploading" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                      <div *ngIf="uploading" class="upload-spinner"></div>
+                      {{ uploading ? 'Uploading...' : 'Upload' }}
+                    </button>
+                  </div>
+                  
+                  <!-- Third level: folders under projects -->
+                  <div class="node-children" *ngIf="child.expanded && child.children && child.children.length > 0">
+                    <div class="grandchild-node" *ngFor="let grandchild of child.children">
+                      <div class="node-content grandchild-content" (click)="toggleNode(grandchild)">
+                        <div class="node-icon">
+                          <!-- Folder icon for grandchild nodes -->
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 20H20C21.1046 20 22 19.1046 22 18V8C22 6.89543 21.1046 6 20 6H12L10 4H4C2.89543 4 2 4.89543 2 6V18C2 19.1046 2.89543 20 4 20Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                        </div>
+                        
+                        <div class="node-expand-icon" *ngIf="grandchild.type === 'uploadFolder'">
+                          <svg *ngIf="!grandchild.expanded" width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                          <svg *ngIf="grandchild.expanded" width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                        </div>
+                        
+                        <div class="node-loading" *ngIf="grandchild.loading">
+                          <div class="mini-spinner"></div>
+                        </div>
+                        
+                        <span class="node-name">{{ grandchild.name }}</span>
+                        
+                        <!-- Upload button only for folders -->
+                        <button *ngIf="grandchild.type === 'uploadFolder'" 
+                                class="upload-button" 
+                                (click)="onUploadButtonClick(grandchild); $event.stopPropagation()"
+                                [disabled]="uploading">
+                          <svg *ngIf="!uploading" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                          <div *ngIf="uploading" class="upload-spinner"></div>
+                          {{ uploading ? 'Uploading...' : 'Upload' }}
+                        </button>
+                      </div>
+                      
+                      <!-- Fourth level: subfolders under grandchild folders -->
+                      <div class="node-children" *ngIf="grandchild.expanded && grandchild.children && grandchild.children.length > 0">
+                        <div class="subfolder-node" *ngFor="let subfolder of grandchild.children">
+                          <div class="node-content subfolder-content" (click)="toggleNode(subfolder)">
+                            <div class="node-icon">
+                              <!-- Folder icon for subfolder nodes -->
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M4 20H20C21.1046 20 22 19.1046 22 18V8C22 6.89543 21.1046 6 20 6H12L10 4H4C2.89543 4 2 4.89543 2 6V18C2 19.1046 2.89543 20 4 20Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                              </svg>
+                            </div>
+                            
+                            <div class="node-expand-icon" *ngIf="subfolder.type === 'uploadFolder'">
+                              <svg *ngIf="!subfolder.expanded" width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                              </svg>
+                              <svg *ngIf="subfolder.expanded" width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                              </svg>
+                            </div>
+                            
+                            <div class="node-loading" *ngIf="subfolder.loading">
+                              <div class="mini-spinner"></div>
+                            </div>
+                            
+                            <span class="node-name">{{ subfolder.name }}</span>
+                            
+                            <!-- Upload button only for folders -->
+                            <button *ngIf="subfolder.type === 'uploadFolder'" 
+                                    class="upload-button" 
+                                    (click)="onUploadButtonClick(subfolder); $event.stopPropagation()"
+                                    [disabled]="uploading">
+                              <svg *ngIf="!uploading" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                              </svg>
+                              <div *ngIf="uploading" class="upload-spinner"></div>
+                              {{ uploading ? 'Uploading...' : 'Upload' }}
+                            </button>
+                          </div>
+                          
+                          <!-- Fifth level: sub-subfolders under subfolder folders -->
+                          <div class="node-children" *ngIf="subfolder.expanded && subfolder.children && subfolder.children.length > 0">
+                            <div class="sub-subfolder-node" *ngFor="let subSubfolder of subfolder.children">
+                              <div class="node-content sub-subfolder-content">
+                                <div class="node-icon">
+                                  <!-- Folder icon for sub-subfolder nodes -->
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M4 20H20C21.1046 20 22 19.1046 22 18V8C22 6.89543 21.1046 6 20 6H12L10 4H4C2.89543 4 2 4.89543 2 6V18C2 19.1046 2.89543 20 4 20Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                  </svg>
+                                </div>
+                                <span class="node-name">{{ subSubfolder.name }}</span>
+                                
+                                <!-- Upload button only for folders -->
+                                <button *ngIf="subSubfolder.type === 'uploadFolder'" 
+                                        class="upload-button" 
+                                        (click)="onUploadButtonClick(subSubfolder); $event.stopPropagation()"
+                                        [disabled]="uploading">
+                                  <svg *ngIf="!uploading" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                  </svg>
+                                  <div *ngIf="uploading" class="upload-spinner"></div>
+                                  {{ uploading ? 'Uploading...' : 'Upload' }}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="cancel-button" (click)="onClose()">Cancel</button>
+      <button class="upload-button" (click)="onClose()">Upload</button>
+    </div>
+  </div>
+</div> 

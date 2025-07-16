@@ -1,0 +1,91 @@
+<div class="modal-overlay" *ngIf="isVisible" (click)="onBackdropClick($event)">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h2 class="modal-title">Elements - {{ categoryName }}</h2>
+      <button class="close-button" (click)="onClose()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-content">
+      <div class="loading-container" *ngIf="loading">
+        <div class="spinner"></div>
+        <p>Loading elements...</p>
+      </div>
+
+      <div class="error-container" *ngIf="error">
+        <p class="error-message">{{ error }}</p>
+      </div>
+
+      <div class="elements-container" *ngIf="!loading && !error">
+        <div class="elements-header">
+          <h3>Found {{ elements.length }} elements</h3>
+          <div class="view-toggle">
+            <button class="toggle-btn" [class.active]="viewMode === 'table'" (click)="setViewMode('table')">Table View</button>
+            <button class="toggle-btn" [class.active]="viewMode === 'cards'" (click)="setViewMode('cards')">Card View</button>
+            <button class="toggle-btn" [class.active]="viewMode === 'json'" (click)="setViewMode('json')">JSON View</button>
+          </div>
+        </div>
+
+        <!-- Table View -->
+        <div class="elements-table-container" *ngIf="viewMode === 'table'">
+          <table class="elements-table">
+            <thead>
+              <tr>
+                <th>Element ID</th>
+                <th>Name</th>
+                <th *ngFor="let propName of getCommonPropertyNames()">{{ getPropertyDisplayName(propName) }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let element of elements" class="element-row">
+                <td class="element-id">{{ element.id || 'N/A' }}</td>
+                <td class="element-name">{{ element.name || 'N/A' }}</td>
+                <td *ngFor="let propName of getCommonPropertyNames()" class="element-property">
+                  <div class="property-value">
+                    {{ formatPropertyValue(getPropertyValue(getAllProperties(element), propName)) }}
+                    <span class="unit" *ngIf="getPropertyUnit(getAllProperties(element), propName)">
+                      {{ getPropertyUnit(getAllProperties(element), propName) }}
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Card View -->
+        <div class="elements-cards-container" *ngIf="viewMode === 'cards'">
+          <div class="element-card" *ngFor="let element of elements">
+            <div class="card-header">
+              <h4 class="element-title">{{ element.name || 'Unnamed Element' }}</h4>
+              <span class="element-id-badge">{{ element.id || 'N/A' }}</span>
+            </div>
+            <div class="card-content">
+              <div class="property-item" *ngFor="let property of getAllProperties(element)">
+                <span class="property-label">{{ getPropertyDisplayName(property.name) }}:</span>
+                <span class="property-value">
+                  {{ formatPropertyValue(property.value) }}
+                  <span class="unit" *ngIf="property.definition?.units?.name">
+                    {{ property.definition.units.name }}
+                  </span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- JSON View -->
+        <div class="elements-json-container" *ngIf="viewMode === 'json'">
+          <pre class="json-display">{{ elements | json }}</pre>
+        </div>
+
+        <div class="no-elements" *ngIf="elements.length === 0">
+          <p>No elements found for this category.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

@@ -1,0 +1,62 @@
+<div class="element-group-details-container">
+  <app-header></app-header>
+  
+  <div class="main-content">
+    <app-sidebar></app-sidebar>
+    
+    <div class="content-area">
+      <div class="header-section">
+        <button class="back-button" (click)="onBackToDocuments()">
+          <i class="fas fa-arrow-left"></i>
+          Back to Documents
+        </button>
+        <h1 class="page-title">Element Group Details</h1>
+      </div>
+      
+      <div class="data-section">
+        <div *ngIf="loading" class="loading">
+          <div class="spinner"></div>
+          <p>Loading element group details...</p>
+        </div>
+        
+        <div *ngIf="error" class="error">
+          <p>{{ error }}</p>
+        </div>
+        
+        <div *ngIf="!loading && !error && categories.length > 0" class="categories-section">
+          <h3>Available Categories</h3>
+          <div class="categories-grid">
+            <div class="category-card" *ngFor="let category of categories">
+              <div class="category-header">
+                <h4 class="category-name">{{ category.name || 'Unnamed Category' }}</h4>
+                <span class="category-count">{{ getTotalCount(category) }} total</span>
+              </div>
+              
+              <div class="values-grid">
+                <div class="value-card" *ngFor="let item of category.values" (click)="onValueCardClick(item)">
+                  <div class="value-content">
+                    <span class="value-text">{{ item.value }}</span>
+                    <span class="value-count">{{ item.count }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div *ngIf="!loading && !error && categories.length === 0" class="no-data">
+          <p>No categories available for this element group.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Elements Modal -->
+<app-elements-modal 
+  [isVisible]="showElementsModal"
+  [elementGroupId]="elementGroupId"
+  [accUserId]="accUserId"
+  [categoryName]="selectedCategoryName"
+  (close)="onCloseElementsModal()">
+</app-elements-modal> 

@@ -1,0 +1,120 @@
+<div class="app-container">
+  <app-header (mobileMenuToggle)="onMobileMenuToggle()"></app-header>
+  <div class="content-wrapper">
+    <app-sidebar 
+      (documentsClick)="onDocumentsClick()" 
+      [class.mobile-hidden]="!showMobileMenu"
+      class="sidebar"></app-sidebar>
+    <main class="main-content">
+      <div class="welcome-section" *ngIf="!showEmptyTree">
+        <h2>Welcome to Design Checker</h2>
+        <p>Select a document from the sidebar to get started</p>
+      </div>
+      <div class="tree-section" *ngIf="showEmptyTree">
+        <div class="tree-header">
+          <div class="header-content">
+            <h3>Documents Tree</h3>
+            <button class="upload-acc-button" (click)="onUploadToACC()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15M7 10L12 15M12 15L17 10M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Upload to ACC
+            </button>
+          </div>
+        </div>
+        
+        <div class="tree-container">
+          <div class="loading-spinner" *ngIf="loading">
+            <div class="spinner"></div>
+            <p>Loading hubs...</p>
+          </div>
+          
+          <div class="tree-content" *ngIf="!loading">
+            <div class="tree-node" *ngFor="let node of treeData">
+              <div class="node-content" (click)="toggleNode(node)">
+                <div class="node-icon">
+                  <svg *ngIf="node.type === 'hub'" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M9 22V12H15V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <svg *ngIf="node.type === 'project'" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <svg *ngIf="node.type === 'elementGroup'" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 12H15M9 16H15M17 21H7C5.89543 21 5 20.1046 5 19V5C5 3.89543 5.89543 3 7 3H12.5858C12.851 3 13.1054 3.10536 13.2929 3.29289L19.7071 9.70711C19.8946 9.89464 20 10.149 20 10.4142V19C20 20.1046 19.1046 21 18 21H17ZM17 21V10H12V5H7V19H17Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+                
+                <div class="node-expand-icon" *ngIf="node.type === 'hub' || node.type === 'project'">
+                  <svg *ngIf="!node.expanded" width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <svg *ngIf="node.expanded" width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+                
+                <div class="node-loading" *ngIf="node.loading">
+                  <div class="mini-spinner"></div>
+                </div>
+                
+                <span class="node-name">{{ node.name }}</span>
+              </div>
+              
+              <div class="node-children" *ngIf="node.expanded && node.children && node.children.length > 0">
+                <div class="child-node" *ngFor="let child of node.children">
+                  <div class="node-content child-content" (click)="toggleNode(child)">
+                    <div class="node-icon">
+                      <svg *ngIf="child.type === 'project'" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                      <svg *ngIf="child.type === 'elementGroup'" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 12H15M9 16H15M17 21H7C5.89543 21 5 20.1046 5 19V5C5 3.89543 5.89543 3 7 3H12.5858C12.851 3 13.1054 3.10536 13.2929 3.29289L19.7071 9.70711C19.8946 9.89464 20 10.149 20 10.4142V19C20 20.1046 19.1046 21 18 21H17ZM17 21V10H12V5H7V19H17Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </div>
+                    
+                    <div class="node-expand-icon" *ngIf="child.type === 'project'">
+                      <svg *ngIf="!child.expanded" width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                      <svg *ngIf="child.expanded" width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </div>
+                    
+                    <div class="node-loading" *ngIf="child.loading">
+                      <div class="mini-spinner"></div>
+                    </div>
+                    
+                    <span class="node-name">{{ child.name }}</span>
+                  </div>
+                  
+                  <div class="node-children" *ngIf="child.expanded && child.children && child.children.length > 0">
+                    <div class="grandchild-node" *ngFor="let grandchild of child.children">
+                      <div class="node-content grandchild-content" (click)="onElementGroupClick(grandchild)">
+                        <div class="node-icon">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9 12H15M9 16H15M17 21H7C5.89543 21 5 20.1046 5 19V5C5 3.89543 5.89543 3 7 3H12.5858C12.851 3 13.1054 3.10536 13.2929 3.29289L19.7071 9.70711C19.8946 9.89464 20 10.149 20 10.4142V19C20 20.1046 19.1046 21 18 21H17ZM17 21V10H12V5H7V19H17Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                        </div>
+                        <span class="node-name">{{ grandchild.name }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Upload Modal -->
+<app-upload-modal 
+  [isVisible]="showUploadModal" 
+  (close)="onCloseUploadModal()">
+</app-upload-modal> 

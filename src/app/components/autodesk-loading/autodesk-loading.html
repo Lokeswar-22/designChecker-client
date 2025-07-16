@@ -1,0 +1,19 @@
+<div class="loading-overlay" *ngIf="isVisible">
+  <div class="loading-content">
+    <div class="loading-spinner">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M21 2V9H14M3 22V15H10M3.59 16.59C4.33267 17.3327 5.24267 17.9147 6.25 18.2927C7.25733 18.6707 8.34267 18.8347 9.42 18.7727C10.4973 18.7107 11.5427 18.4247 12.5 17.93C13.4573 17.4353 14.3073 16.7427 15 15.9L21 9M3 15L9 8.1C9.69267 7.25733 10.5427 6.56467 11.5 6.07C12.4573 5.57533 13.5027 5.28933 14.58 5.22733C15.6573 5.16533 16.7427 5.32933 17.75 5.70733C18.7573 6.08533 19.6673 6.66733 20.41 7.41" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <h3 class="loading-title">Authenticating with Autodesk</h3>
+    <p class="loading-message">{{ message }}</p>
+    <div class="loading-dots">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <button class="manual-check-button" (click)="onManualCheck()">
+      Check Status
+    </button>
+  </div>
+</div> 

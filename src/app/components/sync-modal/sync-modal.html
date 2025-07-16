@@ -1,0 +1,53 @@
+<div class="modal-overlay" *ngIf="isVisible" (click)="onBackdropClick($event)">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="sync-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21 2V9H14M3 22V15H10M3.59 16.59C4.33267 17.3327 5.24267 17.9147 6.25 18.2927C7.25733 18.6707 8.34267 18.8347 9.42 18.7727C10.4973 18.7107 11.5427 18.4247 12.5 17.93C13.4573 17.4353 14.3073 16.7427 15 15.9L21 9M3 15L9 8.1C9.69267 7.25733 10.5427 6.56467 11.5 6.07C12.4573 5.57533 13.5027 5.28933 14.58 5.22733C15.6573 5.16533 16.7427 5.32933 17.75 5.70733C18.7573 6.08533 19.6673 6.66733 20.41 7.41" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h2 class="modal-title">Autodesk Connected!</h2>
+      <p class="modal-subtitle">Your Autodesk account has been successfully authenticated.</p>
+    </div>
+
+    <div class="modal-body">
+      <div class="connection-info">
+        <div class="info-item">
+          <div class="info-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="info-content">
+            <p class="info-label">Account ID</p>
+            <p class="info-value">{{ accUserId || 'Connected' }}</p>
+          </div>
+        </div>
+        
+        <div class="info-item">
+          <div class="info-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="info-content">
+            <p class="info-label">Status</p>
+            <p class="info-value status-connected">Connected</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="sync-button" (click)="onSync()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21 2V9H14M3 22V15H10M3.59 16.59C4.33267 17.3327 5.24267 17.9147 6.25 18.2927C7.25733 18.6707 8.34267 18.8347 9.42 18.7727C10.4973 18.7107 11.5427 18.4247 12.5 17.93C13.4573 17.4353 14.3073 16.7427 15 15.9L21 9M3 15L9 8.1C9.69267 7.25733 10.5427 6.56467 11.5 6.07C12.4573 5.57533 13.5027 5.28933 14.58 5.22733C15.6573 5.16533 16.7427 5.32933 17.75 5.70733C18.7573 6.08533 19.6673 6.66733 20.41 7.41" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Sync Data
+      </button>
+      <button class="close-button" (click)="onClose()">
+        Close
+      </button>
+    </div>
+  </div>
+</div> 
