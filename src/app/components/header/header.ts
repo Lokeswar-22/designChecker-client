@@ -49,7 +49,18 @@ export class HeaderComponent {
 
   getUserDisplayName(): string {
     if (this.currentUser) {
-      return `${this.currentUser.firstName} ${this.currentUser.lastName}`;
+      // Try to get username from login data first
+      if (this.currentUser.username) {
+        return this.currentUser.username;
+      }
+      // Fallback to firstName + lastName
+      if (this.currentUser.firstName || this.currentUser.lastName) {
+        return `${this.currentUser.firstName || ''} ${this.currentUser.lastName || ''}`.trim();
+      }
+      // Fallback to email
+      if (this.currentUser.email) {
+        return this.currentUser.email;
+      }
     }
     return 'User';
   }

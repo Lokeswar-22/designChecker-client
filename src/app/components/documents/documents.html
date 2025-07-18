@@ -6,8 +6,10 @@
       [class.mobile-hidden]="!showMobileMenu"
       class="sidebar"></app-sidebar>
     <main class="main-content">
+ 
+      
       <div class="welcome-section" *ngIf="!showEmptyTree">
-        <h2>Welcome to Design Checker</h2>
+        <h2>Welcome to Design QC</h2>
         <p>Select a document from the sidebar to get started</p>
       </div>
       <div class="tree-section" *ngIf="showEmptyTree">
@@ -105,6 +107,11 @@
                   </div>
                 </div>
               </div>
+            </div>
+            
+            <!-- Show message when no data is available -->
+            <div *ngIf="treeData.length === 0" class="empty-tree-message" style="text-align: center; padding: 2rem; color: #6b7280;">
+              <p>No documents found. Please check your authentication or try refreshing the page.</p>
             </div>
           </div>
         </div>

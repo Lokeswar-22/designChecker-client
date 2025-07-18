@@ -4,6 +4,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { HeaderComponent } from '../header/header';
 import { SidebarComponent } from '../sidebar/sidebar';
 import { ElementsModalComponent } from '../elements-modal/elements-modal';
+import { RuleModalComponent } from '../rule-modal/rule-modal';
+import { AccIssuesModalComponent } from '../acc-issues-modal/acc-issues-modal';
 import { DocumentsService } from '../../services/documents.service';
 import { LocalService } from '../../services/local.service';
 import { AutodeskAuthService } from '../../services/autodesk-auth.service';
@@ -12,7 +14,7 @@ import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-element-group-details',
   standalone: true,
-  imports: [CommonModule, HeaderComponent, SidebarComponent, ElementsModalComponent],
+  imports: [CommonModule, HeaderComponent, SidebarComponent, ElementsModalComponent, RuleModalComponent, AccIssuesModalComponent],
   templateUrl: './element-group-details.html',
   styleUrl: './element-group-details.scss'
 })
@@ -26,6 +28,10 @@ export class ElementGroupDetailsComponent implements OnInit {
   error: string = '';
   showElementsModal = false;
   selectedCategoryName = '';
+  showRuleModal = false;
+  showEvaluation = false;
+  showAccIssuesModal = false;
+  accIssuesCount = 0;
 
   constructor(
     private route: ActivatedRoute,
@@ -131,5 +137,32 @@ export class ElementGroupDetailsComponent implements OnInit {
     console.log('ElementGroupDetailsComponent: Elements modal closed');
     this.showElementsModal = false;
     this.selectedCategoryName = '';
+  }
+
+  onRule1Click() {
+    console.log('ElementGroupDetailsComponent: Rule 1 button clicked');
+    this.showRuleModal = true;
+  }
+
+  onCloseRuleModal() {
+    console.log('ElementGroupDetailsComponent: Rule modal closed');
+    this.showRuleModal = false;
+  }
+
+  onShowAccIssues(issuesCount: number) {
+    console.log('ElementGroupDetailsComponent: Show ACC issues clicked, count:', issuesCount);
+    this.accIssuesCount = issuesCount;
+    this.showAccIssuesModal = true;
+  }
+
+  onCloseAccIssuesModal() {
+    console.log('ElementGroupDetailsComponent: ACC issues modal closed');
+    this.showAccIssuesModal = false;
+    this.accIssuesCount = 0;
+  }
+
+  toggleEvaluation() {
+    console.log('ElementGroupDetailsComponent: Evaluation toggle clicked');
+    this.showEvaluation = !this.showEvaluation;
   }
 } 

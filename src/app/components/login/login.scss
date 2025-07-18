@@ -3,7 +3,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
   padding: 20px;
   position: relative;
   overflow: hidden;
@@ -25,8 +25,8 @@
   right: 0;
   bottom: 0;
   background-image: 
-    radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    radial-gradient(circle at 25% 25%, rgba(0, 0, 0, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(0, 0, 0, 0.1) 0%, transparent 50%);
   animation: float 20s ease-in-out infinite;
 }
 
@@ -77,11 +77,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 12px;
-  color: white;
+}
+
+.logo-image {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
 }
 
 .app-title {
@@ -173,8 +174,8 @@
 }
 
 .form-input:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.1);
 }
 
 .form-input::placeholder {
@@ -217,12 +218,12 @@
 }
 
 .checkbox-label:hover .checkbox-custom {
-  border-color: #667eea;
+  border-color: #fbbf24;
 }
 
 .checkbox-input:checked ~ .checkbox-custom {
-  background-color: #667eea;
-  border-color: #667eea;
+  background-color: #fbbf24;
+  border-color: #fbbf24;
 }
 
 .checkbox-input:checked ~ .checkbox-custom::after {
@@ -232,7 +233,7 @@
   top: 2px;
   width: 6px;
   height: 10px;
-  border: solid white;
+  border: solid #000000;
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }
@@ -251,8 +252,8 @@
 }
 
 .password-toggle:hover {
-  color: #667eea;
-  background: rgba(102, 126, 234, 0.1);
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.1);
 }
 
 .form-actions {
@@ -262,8 +263,8 @@
 .login-button {
   width: 100%;
   padding: 16px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: #000000;
   border: none;
   border-radius: 12px;
   font-size: 16px;
@@ -277,7 +278,7 @@
 
 .login-button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8px 25px rgba(251, 191, 36, 0.3);
 }
 
 .login-button:disabled {
@@ -316,14 +317,14 @@
 }
 
 .footer-link {
-  color: #667eea;
+  color: #fbbf24;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.3s ease;
 }
 
 .footer-link:hover {
-  color: #5a67d8;
+  color: #f59e0b;
   text-decoration: underline;
 }
 
@@ -347,9 +348,9 @@
     font-size: 24px;
   }
   
-  .logo-icon {
-    width: 40px;
-    height: 40px;
+  .logo-image {
+    width: 72px;
+    height: 72px;
   }
   
   .form-input {
@@ -374,6 +375,11 @@
   
   .app-title {
     font-size: 22px;
+  }
+  
+  .logo-image {
+    width: 80px;
+    height: 80px;
   }
   
   .login-subtitle {
@@ -406,6 +412,11 @@
   
   .app-title {
     font-size: 20px;
+  }
+  
+  .logo-image {
+    width: 72px;
+    height: 72px;
   }
   
   .form-input {

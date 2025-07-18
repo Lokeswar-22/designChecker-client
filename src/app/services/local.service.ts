@@ -16,6 +16,7 @@ export class LocalService {
   private readonly TOKEN_EXPIRY_KEY = 'token_expiry';
   private readonly REMEMBER_ME_KEY = 'remember_me';
   private readonly USER_DATA_KEY = 'user_data';
+  private readonly PROJECT_NAME_KEY = 'project_name';
 
   constructor() {}
 
@@ -107,6 +108,28 @@ export class LocalService {
     return data ? JSON.parse(data) : null;
   }
 
+  // Project name management
+  setProjectName(projectName: string): void {
+    console.log('LocalService: Setting project name:', projectName);
+    if (this.isRememberMe()) {
+      localStorage.setItem(this.PROJECT_NAME_KEY, projectName);
+    } else {
+      sessionStorage.setItem(this.PROJECT_NAME_KEY, projectName);
+    }
+  }
+
+  getProjectName(): string | null {
+    const projectName = localStorage.getItem(this.PROJECT_NAME_KEY) || sessionStorage.getItem(this.PROJECT_NAME_KEY);
+    console.log('LocalService: Retrieved project name:', projectName);
+    return projectName;
+  }
+
+  clearProjectName(): void {
+    localStorage.removeItem(this.PROJECT_NAME_KEY);
+    sessionStorage.removeItem(this.PROJECT_NAME_KEY);
+    console.log('LocalService: Project name cleared');
+  }
+
   // Cleanup
   clearAll(): void {
     localStorage.removeItem(this.ACCESS_TOKEN_KEY);
@@ -114,12 +137,14 @@ export class LocalService {
     localStorage.removeItem(this.TOKEN_EXPIRY_KEY);
     localStorage.removeItem(this.REMEMBER_ME_KEY);
     localStorage.removeItem(this.USER_DATA_KEY);
+    localStorage.removeItem(this.PROJECT_NAME_KEY);
     
     sessionStorage.removeItem(this.ACCESS_TOKEN_KEY);
     sessionStorage.removeItem(this.REFRESH_TOKEN_KEY);
     sessionStorage.removeItem(this.TOKEN_EXPIRY_KEY);
     sessionStorage.removeItem(this.REMEMBER_ME_KEY);
     sessionStorage.removeItem(this.USER_DATA_KEY);
+    sessionStorage.removeItem(this.PROJECT_NAME_KEY);
   }
 
   // Check if user is authenticated

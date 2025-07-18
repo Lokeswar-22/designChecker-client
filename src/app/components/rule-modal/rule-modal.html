@@ -1,0 +1,89 @@
+<div class="modal-overlay" *ngIf="isVisible" (click)="onBackdropClick($event)">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Rule 1 - Door Clear Opening Check</h2>
+      <button class="close-button" (click)="onClose()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Loading State -->
+      <div *ngIf="loading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Checking door clear opening rules...</p>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="error" class="error-state">
+        <i class="fas fa-exclamation-triangle"></i>
+        <p>{{ error }}</p>
+        <button class="retry-button" (click)="checkRule1()">Retry</button>
+      </div>
+
+      <!-- Results State -->
+      <div *ngIf="!loading && !error && ruleData" class="results-state">
+        <!-- Summary Section -->
+        <div class="summary-section">
+          <div class="summary-card">
+            <div class="summary-item">
+              <span class="summary-label">Total Elements</span>
+              <span class="summary-value">{{ getTotalCount() }}</span>
+            </div>
+            <div class="summary-item passed">
+              <span class="summary-label">Passed</span>
+              <span class="summary-value">{{ getPassedCount() }}</span>
+            </div>
+            <div class="summary-item failed">
+              <span class="summary-label">Failed</span>
+              <span class="summary-value">{{ getFailedCount() }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">Pass Rate</span>
+              <span class="summary-value">{{ getPassPercentage() }}%</span>
+            </div>
+          </div>
+          
+          <!-- Issues Created Section -->
+          <div *ngIf="getIssuesCreated() > 0" class="issues-created-section">
+            <div class="issues-created-card">
+              <i class="fas fa-exclamation-circle"></i>
+              <span class="issues-created-text">{{ getIssuesCreated() }} issues are created in ACC</span>
+              <button class="view-issues-button" (click)="onShowAccIssues()">
+                <i class="fas fa-eye"></i>
+                View Issues
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Results List -->
+        <div class="results-section">
+          <h3>Detailed Results</h3>
+          <div class="results-list">
+            <div 
+              *ngFor="let result of getResults()" 
+              class="result-item"
+              [class.passed]="result.passed"
+              [class.failed]="!result.passed"
+            >
+              <div class="result-header">
+                <span class="element-id">{{ result.revitElementId }}</span>
+                <span class="status-badge" [class.passed]="result.passed" [class.failed]="!result.passed">
+                  {{ result.passed ? 'PASS' : 'FAIL' }}
+                </span>
+              </div>
+              <div class="result-message">
+                {{ result.message }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="close-modal-button" (click)="onClose()">Close</button>
+    </div>
+  </div>
+</div> 

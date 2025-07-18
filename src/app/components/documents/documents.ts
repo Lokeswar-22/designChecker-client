@@ -27,7 +27,7 @@ interface TreeNode {
   styleUrl: './documents.scss'
 })
 export class DocumentsComponent implements OnInit {
-  showEmptyTree = false;
+  showEmptyTree = true; // Changed from false to true to show tree by default
   showMobileMenu = false;
   treeData: TreeNode[] = [];
   loading = false;
@@ -69,6 +69,15 @@ export class DocumentsComponent implements OnInit {
     console.log('DocumentsComponent: Auth service access token:', this.authService.getAccessToken());
     
     console.log('DocumentsComponent: Component initialization complete');
+    
+    // Automatically show the tree and load data when component initializes
+    // this.showEmptyTree = true; // This line is now redundant as showEmptyTree is initialized to true
+    console.log('DocumentsComponent: showEmptyTree set to:', this.showEmptyTree);
+    
+    // Load tree data after a short delay to ensure component is fully initialized
+    setTimeout(() => {
+      this.loadTreeData();
+    }, 100);
   }
 
   onDocumentsClick() {
@@ -80,6 +89,10 @@ export class DocumentsComponent implements OnInit {
     // Force show the tree section
     this.showEmptyTree = true;
     console.log('DocumentsComponent: showEmptyTree set to:', this.showEmptyTree);
+    
+    // Clear existing tree data to ensure fresh load
+    this.treeData = [];
+    this.loading = false;
     
     // Add a small delay to ensure the UI updates
     setTimeout(() => {
@@ -119,6 +132,8 @@ export class DocumentsComponent implements OnInit {
     
     if (!this.accUserId) {
       console.error('DocumentsComponent: No accUserId available');
+      // Still show the tree section even if no accUserId, so user can see the interface
+      this.showEmptyTree = true;
       return;
     }
 
@@ -127,6 +142,9 @@ export class DocumentsComponent implements OnInit {
     console.log('DocumentsComponent: After refresh - Auth service isAuthenticated:', this.authService.isAuthenticated());
     console.log('DocumentsComponent: After refresh - Access token:', this.authService.getAccessToken());
 
+    // Ensure tree is visible before loading
+    this.showEmptyTree = true;
+    
     // Proceed with API call even if AuthService says not authenticated, since we have accUserId
     this.loading = true;
     console.log('DocumentsComponent: Loading hubs for accUserId:', this.accUserId);
@@ -154,11 +172,15 @@ export class DocumentsComponent implements OnInit {
           this.treeData = [];
         }
         
+        // Ensure tree is visible after data is loaded
+        this.showEmptyTree = true;
         this.loading = false;
       },
       error: (error) => {
         console.error('DocumentsComponent: Error loading hubs:', error);
         console.error('DocumentsComponent: Error details:', error.error || error.message);
+        // Still show the tree section even on error, so user can see the interface
+        this.showEmptyTree = true;
         this.loading = false;
       }
     });
@@ -191,6 +213,14 @@ export class DocumentsComponent implements OnInit {
     this.documentsService.getProjects(hubNode.id, this.accUserId).subscribe({
       next: (response) => {
         console.log('DocumentsComponent: Projects response received:', response);
+        console.log("NAMEEE",response.projects.results[0].name)
+
+        // Save the first project name to LocalService for global access
+        if (response.projects.results && response.projects.results.length > 0) {
+          const projectName = response.projects.results[0].name;
+          this.localService.setProjectName(projectName);
+          console.log('DocumentsComponent: Project name saved to LocalService:', projectName);
+        }
         
         // Handle the response structure safely
         if (response && response.projects && response.projects.results) {
@@ -206,6 +236,7 @@ export class DocumentsComponent implements OnInit {
               parentId: hubNode.id
             };
           });
+          
           console.log('DocumentsComponent: Projects loaded for hub:', hubNode.name, 'projects:', hubNode.children);
         } else {
           console.error('DocumentsComponent: Unexpected projects response structure:', response);

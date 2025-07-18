@@ -19,15 +19,36 @@ export interface LoginResponse {
   token?: string; // Alternative field name
   user?: {
     id?: string;
+    userID?: number; // Added to match actual API response
     username?: string;
     email?: string;
     firstName?: string;
     lastName?: string;
     name?: string; // Alternative field name
+    isAccSynced?: boolean; // Added to match actual API response
+    createdAt?: string;
+    modifiedAt?: string;
+    deletedAt?: string | null;
   };
   // Handle different response formats
   success?: boolean;
   message?: string;
+  data?: {
+    accessToken?: string;
+    refreshToken?: string;
+    message?: string; // Added for error messages in data object
+    user?: {
+      userID?: number;
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      isAccSynced?: boolean;
+      createdAt?: string;
+      modifiedAt?: string;
+      deletedAt?: string | null;
+    };
+  };
+  statusCode?: number;
 }
 
 export interface RefreshResponse {
@@ -82,7 +103,10 @@ export class AuthService {
     return this.http.post<LoginResponse>('http://localhost:3005/auth/login', credentials, { headers })
       .pipe(
         tap(response => {
-          this.handleSuccessfulLogin(response, credentials.rememberMe || false);
+          // Only handle successful login if success is true or undefined (for backward compatibility)
+          if (response.success !== false) {
+            this.handleSuccessfulLogin(response, credentials.rememberMe || false);
+          }
         }),
         catchError(error => {
           console.error('Login error:', error);
@@ -94,9 +118,29 @@ export class AuthService {
   private handleSuccessfulLogin(response: LoginResponse, rememberMe: boolean): void {
     console.log('AuthService: handleSuccessfulLogin called with response:', response);
     
-    // Handle different token field names
-    const accessToken = response.accessToken || response.token || '';
-    const refreshToken = response.refreshToken || '';
+    // Additional safety check - don't process if success is explicitly false
+    if (response.success === false) {
+      console.log('AuthService: Login response indicates failure, not processing');
+      return;
+    }
+    
+    // Handle different response structures
+    let accessToken = '';
+    let refreshToken = '';
+    let userData = {};
+    
+    if (response.data) {
+      // New response structure with data wrapper
+      accessToken = response.data.accessToken || '';
+      refreshToken = response.data.refreshToken || '';
+      userData = response.data.user || {};
+    } else {
+      // Old response structure
+      accessToken = response.accessToken || response.token || '';
+      refreshToken = response.refreshToken || '';
+      userData = response.user || {};
+    }
+    
     const expiresIn = response.expiresIn || 3600; // Default to 1 hour
 
     console.log('AuthService: Access token from response:', accessToken);
@@ -116,12 +160,11 @@ export class AuthService {
     console.log('AuthService: Local service isAuthenticated:', this.localService.isAuthenticated());
 
     // Handle different user data formats
-    const userData = response.user || {};
-    if (response.user?.name && !response.user.firstName) {
+    if (userData && (userData as any).name && !(userData as any).firstName) {
       // Split name into firstName and lastName
-      const nameParts = response.user.name.split(' ');
-      userData.firstName = nameParts[0] || '';
-      userData.lastName = nameParts.slice(1).join(' ') || '';
+      const nameParts = (userData as any).name.split(' ');
+      (userData as any).firstName = nameParts[0] || '';
+      (userData as any).lastName = nameParts.slice(1).join(' ') || '';
     }
 
     // Store user data
@@ -291,5 +334,24 @@ export class AuthService {
       observer.next(this.getAccessToken());
       observer.complete();
     });
+  }
+
+  // Check ACC authentication status
+  checkAccStatus(): Observable<any> {
+    const userData = this.getCurrentUser();
+    if (!userData || (!userData.id && !userData.userID)) {
+      return throwError(() => new Error('No user data available'));
+    }
+
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+    const body = { userID: userData.userID || userData.id };
+
+    return this.http.post('http://localhost:3005/api/acc-auth/check-acc-status', body, { headers })
+      .pipe(
+        catchError(error => {
+          console.error('ACC status check failed:', error);
+          return throwError(() => error);
+        })
+      );
   }
 } 

@@ -87,19 +87,109 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     this.authService.login(loginRequest).subscribe({
       next: (response) => {
+        console.log('Login response:', response);
+        this.isLoading = false;
+        
+        // Check if the response indicates failure
+        if (response.success === false) {
+          // Handle failed login response
+          const errorMsg = response.data?.message || response.message || 'Login failed. Please try again.';
+          this.errorMessage = errorMsg;
+          console.error('Login failed:', errorMsg);
+          return; // Don't proceed to next steps
+        }
+        
+        // Handle successful login
         console.log('Login successful:', response);
-      this.isLoading = false;
-        // Handle different user data formats
-        this.userData = response.user || {
-          username: loginRequest.username,
-          email: loginRequest.username
-        };
-        this.showSuccessModal = true;
+        
+        // Handle different user data formats based on response structure
+        if (response.data && response.data.user) {
+          // New response structure with data wrapper
+          this.userData = response.data.user;
+        } else if (response.user) {
+          // Old response structure
+          this.userData = response.user;
+        } else {
+          // Fallback
+          this.userData = {
+            username: loginRequest.username,
+            email: loginRequest.username
+          };
+        }
+        
+        // Check ACC status after successful login
+        this.checkAccStatus();
       },
       error: (error) => {
         console.error('Login failed:', error);
         this.isLoading = false;
-        this.errorMessage = error.error?.message || error.message || 'Login failed. Please try again.';
+        
+        // Handle different error response formats
+        if (error.error && error.error.data && error.error.data.message) {
+          // Handle the specific API response format
+          this.errorMessage = error.error.data.message;
+        } else if (error.error && error.error.message) {
+          // Handle error with message in error object
+          this.errorMessage = error.error.message;
+        } else if (error.message) {
+          // Handle error with message property
+          this.errorMessage = error.message;
+        } else {
+          // Fallback error message
+          this.errorMessage = 'Login failed. Please try again.';
+        }
+      }
+    });
+  }
+
+  private checkAccStatus() {
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    this.authService.checkAccStatus().subscribe({
+      next: (response) => {
+        console.log('ACC status check response:', response);
+        this.isLoading = false;
+
+        // Only show connect modal if user is not synced with ACC
+        if (
+          response.success === false &&
+          response.message === 'User is not synced with ACC' &&
+          response.data &&
+          response.data.isAccSynced === false &&
+          response.data.isTokenValid === false
+        ) {
+          // Show connect (Autodesk login) modal
+          this.showSuccessModal = true;
+          return;
+        }
+
+        // User is already synced and token is valid
+        if (response.success && response.data) {
+          const { isAccSynced, isTokenValid, accUserId } = response.data;
+
+          if (isAccSynced && isTokenValid) {
+            // Store the accUserId in user data if available
+            if (accUserId) {
+              const currentUserData = this.localService.getUserData() || {};
+              const updatedUserData = { ...currentUserData, accUserId: accUserId };
+              this.localService.setUserData(updatedUserData);
+              console.log('LoginComponent: Stored accUserId from ACC status check:', updatedUserData);
+            }
+            // Navigate to documents
+            this.router.navigate(['/documents']);
+            return;
+          }
+        }
+
+        // For all other cases, show a generic error
+        this.errorMessage = response.message || 'Unable to check ACC status.';
+      },
+      error: (error) => {
+        console.error('ACC status check failed:', error);
+        this.isLoading = false;
+        // Show error message, do not show connect modal
+        this.errorMessage = 'Unable to check ACC status. Please try again.';
       }
     });
   }

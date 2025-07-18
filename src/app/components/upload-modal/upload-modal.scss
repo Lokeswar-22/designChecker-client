@@ -45,12 +45,12 @@
     cursor: pointer;
     padding: 0.5rem;
     border-radius: 6px;
-    color: #6b7280;
+    color: #000000;
     transition: all 0.2s;
     
     &:hover {
-      background-color: #f3f4f6;
-      color: #374151;
+      background-color: #fef3c7;
+      color: #000000;
     }
   }
 }
@@ -62,8 +62,8 @@
 }
 
 .upload-progress {
-  background: #f0f9ff;
-  border: 1px solid #0ea5e9;
+  background: #fef3c7;
+  border: 1px solid #fbbf24;
   border-radius: 8px;
   padding: 1rem;
   margin-bottom: 1.5rem;
@@ -76,13 +76,13 @@
     
     h4 {
       margin: 0;
-      color: #0c4a6e;
+      color: #92400e;
       font-size: 1rem;
       font-weight: 600;
     }
     
     .progress-text {
-      color: #0c4a6e;
+      color: #92400e;
       font-weight: 600;
       font-size: 0.875rem;
     }
@@ -91,14 +91,14 @@
   .progress-bar {
     width: 100%;
     height: 8px;
-    background-color: #e0f2fe;
+    background-color: #fde68a;
     border-radius: 4px;
     overflow: hidden;
     margin-bottom: 0.5rem;
     
     .progress-fill {
       height: 100%;
-      background-color: #0ea5e9;
+      background-color: #fbbf24;
       border-radius: 4px;
       transition: width 0.3s ease;
     }
@@ -106,7 +106,7 @@
   
   .file-name {
     margin: 0;
-    color: #0c4a6e;
+    color: #92400e;
     font-size: 0.875rem;
     font-weight: 500;
   }
@@ -143,7 +143,7 @@
     width: 32px;
     height: 32px;
     border: 3px solid #f3f4f6;
-    border-top: 3px solid #3b82f6;
+    border-top: 3px solid #fbbf24;
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin-bottom: 1rem;
@@ -171,18 +171,18 @@
     margin: 2px 0;
     
     &:hover {
-      background-color: #f3f4f6;
+      background-color: #fef3c7;
     }
     
     .node-icon {
       margin-right: 0.75rem;
-      color: #6b7280;
+      color: #000000;
       flex-shrink: 0;
     }
     
     .node-expand-icon {
       margin-right: 0.5rem;
-      color: #9ca3af;
+      color: #000000;
       transition: transform 0.2s;
       flex-shrink: 0;
     }
@@ -195,7 +195,7 @@
         width: 16px;
         height: 16px;
         border: 2px solid #f3f4f6;
-        border-top: 2px solid #3b82f6;
+        border-top: 2px solid #fbbf24;
         border-radius: 50%;
         animation: spin 1s linear infinite;
       }
@@ -214,8 +214,8 @@
     .upload-button {
       margin-left: 0.5rem;
       padding: 0.25rem 0.5rem;
-      background-color: #3b82f6;
-      color: white;
+      background-color: #fbbf24;
+      color: #000000;
       border: none;
       border-radius: 4px;
       font-size: 0.75rem;
@@ -228,11 +228,11 @@
       gap: 0.25rem;
       
       &:hover:not(:disabled) {
-        background-color: #2563eb;
+        background-color: #f59e0b;
       }
       
       &:active:not(:disabled) {
-        background-color: #1d4ed8;
+        background-color: #d97706;
       }
       
       &:disabled {
@@ -249,8 +249,8 @@
       .upload-spinner {
         width: 14px;
         height: 14px;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-top: 2px solid white;
+        border: 2px solid rgba(0, 0, 0, 0.2);
+        border-top: 2px solid #000000;
         border-radius: 50%;
         animation: spin 1s linear infinite;
       }
@@ -331,54 +331,50 @@
   }
 }
 
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 .modal-footer {
   display: flex;
-  align-items: center;
   justify-content: flex-end;
   gap: 1rem;
   padding: 1.5rem;
   border-top: 1px solid #e5e7eb;
   background-color: #f9fafb;
   
-  .cancel-button {
-    padding: 0.75rem 1.5rem;
-    border: 1px solid #d1d5db;
-    background-color: white;
-    color: #374151;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-    
-    &:hover {
-      background-color: #f9fafb;
-      border-color: #9ca3af;
-    }
-  }
-  
-  .upload-button {
+  .btn {
     padding: 0.75rem 1.5rem;
     border: none;
-    background-color: #3b82f6;
-    color: white;
     border-radius: 6px;
     font-size: 0.875rem;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
     
-    &:hover {
-      background-color: #2563eb;
+    &.btn-secondary {
+      background-color: #f3f4f6;
+      color: #374151;
+      
+      &:hover {
+        background-color: #e5e7eb;
+      }
     }
     
-    &:active {
-      background-color: #1d4ed8;
+    &.btn-primary {
+      background-color: #fbbf24;
+      color: #000000;
+      
+      &:hover {
+        background-color: #f59e0b;
+      }
+      
+      &:disabled {
+        background-color: #9ca3af;
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
     }
   }
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
 } 

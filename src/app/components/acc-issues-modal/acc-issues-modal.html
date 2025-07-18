@@ -1,0 +1,90 @@
+<div class="modal-overlay" *ngIf="isVisible" (click)="onBackdropClick($event)">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Issues Created in ACC</h2>
+      <button class="close-button" (click)="onClose()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Loading State -->
+      <div *ngIf="loading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading issues from ACC...</p>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="error" class="error-state">
+        <i class="fas fa-exclamation-triangle"></i>
+        <p>{{ error }}</p>
+        <button class="retry-button" (click)="loadIssues()">Retry</button>
+      </div>
+
+      <!-- Issues Content -->
+      <div *ngIf="!loading && !error">
+        <div class="issues-summary">
+          <div class="summary-card">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div class="summary-content">
+              <h3>{{ totalIssues }} Issues Found</h3>
+              <p>The following issues have been created in Autodesk Construction Cloud (ACC)</p>
+            </div>
+          </div>
+        </div>
+
+      <div class="issues-list">
+        <div class="issues-header">
+          <h3>Issue Details</h3>
+        </div>
+        
+        <div class="issues-grid">
+          <div 
+            *ngFor="let issue of issues" 
+            class="issue-card"
+          >
+            <div class="issue-header">
+              <div class="issue-title">
+                <h4>{{ issue.title }}</h4>
+                <span class="issue-id">ID: {{ issue.id }}</span>
+              </div>
+              <div class="issue-status">
+                <span class="status-badge" [class]="getStatusClass(issue.status)">
+                  {{ issue.status | titlecase }}
+                </span>
+              </div>
+            </div>
+            
+            <div class="issue-content">
+              <p class="issue-description">{{ issue.description }}</p>
+              
+              <div class="issue-details">
+                <div class="detail-item">
+                  <strong>Display ID:</strong>
+                  <span>{{ issue.displayId }}</span>
+                </div>
+                <div class="detail-item">
+                  <strong>Created:</strong>
+                  <span>{{ formatDate(issue.createdAt) }}</span>
+                </div>
+                <div class="detail-item">
+                  <strong>Updated:</strong>
+                  <span>{{ formatDate(issue.updatedAt) }}</span>
+                </div>
+                <div class="detail-item">
+                  <strong>Status:</strong>
+                  <span [class]="getStatusClass(issue.status)">{{ issue.status | titlecase }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <div class="modal-footer">
+      <button class="close-modal-button" (click)="onClose()">Close</button>
+    </div>
+  </div>
+</div> 
