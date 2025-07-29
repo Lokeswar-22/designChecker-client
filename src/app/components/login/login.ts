@@ -117,8 +117,8 @@ export class LoginComponent implements OnInit, OnDestroy {
           };
         }
         
-        // Check ACC status after successful login
-        this.checkAccStatus();
+        // Skip ACC status check and directly show Connect modal
+        this.showSuccessModal = true;
       },
       error: (error) => {
         console.error('Login failed:', error);

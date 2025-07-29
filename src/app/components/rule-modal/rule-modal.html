@@ -1,7 +1,8 @@
 <div class="modal-overlay" *ngIf="isVisible" (click)="onBackdropClick($event)">
   <div class="modal-content">
     <div class="modal-header">
-      <h2>Rule 1 - Door Clear Opening Check</h2>
+      <h2 *ngIf="ruleType === 'rule1'">Rule 1 - Door Clear Opening Check</h2>
+      <h2 *ngIf="ruleType === 'rule2'">Rule 2 - Ramp Landing Check</h2>
       <button class="close-button" (click)="onClose()">
         <i class="fas fa-times"></i>
       </button>
@@ -11,14 +12,15 @@
       <!-- Loading State -->
       <div *ngIf="loading" class="loading-state">
         <div class="spinner"></div>
-        <p>Checking door clear opening rules...</p>
+        <p *ngIf="ruleType === 'rule1'">Checking door clear opening rules...</p>
+        <p *ngIf="ruleType === 'rule2'">Checking ramp landing rules...</p>
       </div>
 
       <!-- Error State -->
       <div *ngIf="error" class="error-state">
         <i class="fas fa-exclamation-triangle"></i>
         <p>{{ error }}</p>
-        <button class="retry-button" (click)="checkRule1()">Retry</button>
+        <button class="retry-button" (click)="checkRule()">Retry</button>
       </div>
 
       <!-- Results State -->
@@ -73,8 +75,20 @@
                   {{ result.passed ? 'PASS' : 'FAIL' }}
                 </span>
               </div>
-              <div class="result-message">
-                {{ result.message }}
+              <div class="result-details">
+                <div class="result-message">
+                  {{ result.message }}
+                </div>
+                <div class="result-properties" *ngIf="result.propertyUsed">
+                  <span class="property-label">Property:</span>
+                  <span class="property-value">{{ result.propertyUsed }}</span>
+                  <span class="property-label" *ngIf="result.widthMM !== null">Width:</span>
+                  <span class="property-value" *ngIf="result.widthMM !== null">{{ result.widthMM }} mm</span>
+                </div>
+                <div class="result-ifc" *ngIf="result.ifcGUID">
+                  <span class="ifc-label">IFC GUID:</span>
+                  <span class="ifc-value">{{ result.ifcGUID }}</span>
+                </div>
               </div>
             </div>
           </div>

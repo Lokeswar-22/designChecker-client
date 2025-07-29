@@ -17,6 +17,7 @@ interface TreeNode {
   expanded?: boolean;
   loading?: boolean;
   parentId?: string; // For tracking parent relationships
+  alternativeIdentifiers?: any; // For element groups
 }
 
 @Component({
@@ -118,9 +119,16 @@ export class DocumentsComponent implements OnInit {
     console.log('DocumentsComponent: Element group clicked:', elementGroup);
     if (elementGroup.type === 'elementGroup') {
       // Navigate to element group details page
+      const alternativeIdentifiersParam = elementGroup.alternativeIdentifiers ? 
+        encodeURIComponent(JSON.stringify(elementGroup.alternativeIdentifiers)) : '';
       const url = `/element-group/${elementGroup.id}/${encodeURIComponent(elementGroup.name)}`;
       console.log('DocumentsComponent: Navigating to:', url);
-      this.router.navigate([url]);
+      console.log('DocumentsComponent: alternativeIdentifiers:', elementGroup.alternativeIdentifiers);
+      this.router.navigate([url], {
+        queryParams: {
+          alternativeIdentifiers: alternativeIdentifiersParam
+        }
+      });
     }
   }
 
@@ -277,7 +285,8 @@ export class DocumentsComponent implements OnInit {
               children: [],
               expanded: false,
               loading: false,
-              parentId: projectNode.id
+              parentId: projectNode.id,
+              alternativeIdentifiers: elementGroup.alternativeIdentifiers
             };
           });
           console.log('DocumentsComponent: Element groups loaded for project:', projectNode.name, 'elementGroups:', projectNode.children);

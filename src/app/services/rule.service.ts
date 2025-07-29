@@ -10,7 +10,10 @@ export interface RuleCheckRequest {
 }
 
 export interface RuleResult {
-  elementId: string;
+  revitElementId: string;
+  ifcGUID: string | null;
+  propertyUsed: string | null;
+  widthMM: number | null;
   passed: boolean;
   message: string;
 }
@@ -24,8 +27,12 @@ export interface RuleSummary {
 
 export interface RuleCheckResponse {
   rule: string;
-  results: RuleResult[];
-  summary: RuleSummary;
+  results?: RuleResult[]; // Direct results for Rule 2
+  summary?: RuleSummary; // Direct summary for Rule 2
+  result?: { // Nested structure for Rule 1
+    results: RuleResult[];
+    summary: RuleSummary;
+  };
   issuesCreated?: number;
 }
 
@@ -93,11 +100,63 @@ export class RuleService {
     return this.http.post<RuleCheckResponse>(`${this.baseUrl}/rule-check/rule1`, requestBody);
   }
 
+  checkRule2(elementGroupId: string, accUserId: string, projectId: string): Observable<RuleCheckResponse> {
+    this.projectID = projectId;
+    this.accUserID = accUserId;
+    const requestBody: RuleCheckRequest = {
+      elementGroupId,
+      accUserId,
+      projectId,
+      category: 'property.name.category==Ramps'
+    };
+    return this.http.post<RuleCheckResponse>(`${this.baseUrl}/rule-check/rule2`, requestBody);
+  }
+
+  checkRule3(elementGroupId: string, accUserId: string, projectId: string): Observable<RuleCheckResponse> {
+    this.projectID = projectId;
+    this.accUserID = accUserId;
+    const requestBody: RuleCheckRequest = {
+      elementGroupId,
+      accUserId,
+      projectId,
+      category: 'property.name.category==Ramps'
+    };
+    return this.http.post<RuleCheckResponse>(`${this.baseUrl}/rule-check/rule3`, requestBody);
+  }
+
+  checkRule4(elementGroupId: string, accUserId: string, projectId: string): Observable<RuleCheckResponse> {
+    this.projectID = projectId;
+    this.accUserID = accUserId;
+    const requestBody: RuleCheckRequest = {
+      elementGroupId,
+      accUserId,
+      projectId,
+      category: 'property.name.category==Stairs'
+    };
+    return this.http.post<RuleCheckResponse>(`${this.baseUrl}/rule-check/rule4`, requestBody);
+  }
+
+  checkRule5(elementGroupId: string, accUserId: string, projectId: string): Observable<RuleCheckResponse> {
+    this.projectID = projectId;
+    this.accUserID = accUserId;
+    const requestBody: RuleCheckRequest = {
+      elementGroupId,
+      accUserId,
+      projectId,
+      category: 'property.name.category==Walls'
+    };
+    return this.http.post<RuleCheckResponse>(`${this.baseUrl}/rule-check/rule5`, requestBody);
+  }
+
   getProjectById(accUserId: string, projectName: string): Observable<any> {
     return this.http.get(`${this.baseUrl}/hubs/project-id?accUserId=${accUserId}&projectName=${encodeURIComponent(projectName)}`);
   }
 
   getIssues(): Observable<IssuesResponse> {
     return this.http.get<IssuesResponse>(`${this.baseUrl}/hubs/projects/${this.projectID}/issues?accUserId=${this.accUserID}`);
+  }
+
+  createIssue(projectId: string, accUserId: string, issueData: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/hubs/projects/${projectId}/issues?accUserId=${accUserId}`, issueData);
   }
 } 

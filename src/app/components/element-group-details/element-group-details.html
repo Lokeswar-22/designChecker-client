@@ -4,7 +4,11 @@
   <div class="main-content">
     <app-sidebar 
       [showRules]="true"
-      (rule1Click)="onRule1Click()">
+      (rule1Click)="onRule1Click()"
+      (rule2Click)="onRule2Click()"
+      (rule3Click)="onRule3Click()"
+      (rule4Click)="onRule4Click()"
+      (rule5Click)="onRule5Click()">
     </app-sidebar>
     
     <div class="content-area">
@@ -21,6 +25,20 @@
       </div>
       
       <div class="data-section">
+        <!-- 3D Viewer Section -->
+        <div class="viewer-section">
+          <h3>3D Model Viewer</h3>
+          <div class="viewer-container" #viewerContainer>
+            <div *ngIf="viewerLoading" class="viewer-loading">
+              <div class="spinner"></div>
+              <p>Loading 3D viewer...</p>
+            </div>
+            <div *ngIf="viewerError" class="viewer-error">
+              <p>{{ viewerError }}</p>
+            </div>
+          </div>
+        </div>
+
         <div *ngIf="loading" class="loading">
           <div class="spinner"></div>
           <p>Loading element group details...</p>
@@ -73,6 +91,7 @@
   [isVisible]="showRuleModal"
   [elementGroupId]="elementGroupId"
   [accUserId]="accUserId"
+  [ruleType]="ruleType"
   (close)="onCloseRuleModal()"
   (showAccIssues)="onShowAccIssues($event)">
 </app-rule-modal>

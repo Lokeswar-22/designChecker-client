@@ -19,6 +19,7 @@ export interface ElementGroup {
   id: string;
   name: string;
   type: string;
+  alternativeIdentifiers?: any;
 }
 
 export interface HubsResponse {

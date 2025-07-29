@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HeaderComponent } from '../header/header';
@@ -10,6 +10,7 @@ import { DocumentsService } from '../../services/documents.service';
 import { LocalService } from '../../services/local.service';
 import { AutodeskAuthService } from '../../services/autodesk-auth.service';
 import { AuthService } from '../../services/auth.service';
+import { ViewerService } from '../../services/viewer.service';
 
 @Component({
   selector: 'app-element-group-details',
@@ -18,7 +19,9 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './element-group-details.html',
   styleUrl: './element-group-details.scss'
 })
-export class ElementGroupDetailsComponent implements OnInit {
+export class ElementGroupDetailsComponent implements OnInit, AfterViewInit {
+  @ViewChild('viewerContainer', { static: false }) viewerContainer!: ElementRef;
+  
   elementGroupId: string = '';
   elementGroupName: string = '';
   accUserId: string = '';
@@ -32,6 +35,11 @@ export class ElementGroupDetailsComponent implements OnInit {
   showEvaluation = false;
   showAccIssuesModal = false;
   accIssuesCount = 0;
+  viewer: any = null;
+  viewerLoading = false;
+  viewerError = '';
+  urn = '';
+  ruleType: string = 'rule1'; // Track which rule is being checked
 
   constructor(
     private route: ActivatedRoute,
@@ -39,7 +47,8 @@ export class ElementGroupDetailsComponent implements OnInit {
     private documentsService: DocumentsService,
     private localService: LocalService,
     private autodeskAuthService: AutodeskAuthService,
-    private authService: AuthService
+    private authService: AuthService,
+    private viewerService: ViewerService
   ) {}
 
   ngOnInit() {
@@ -51,6 +60,21 @@ export class ElementGroupDetailsComponent implements OnInit {
       this.elementGroupName = params['elementGroupName'];
       console.log('ElementGroupDetailsComponent: elementGroupId from route:', this.elementGroupId);
       console.log('ElementGroupDetailsComponent: elementGroupName from route:', this.elementGroupName);
+    });
+    
+    // Get alternativeIdentifiers from query parameters
+    this.route.queryParams.subscribe(queryParams => {
+      if (queryParams['alternativeIdentifiers']) {
+        try {
+          const alternativeIdentifiers = JSON.parse(decodeURIComponent(queryParams['alternativeIdentifiers']));
+          console.log('ElementGroupDetailsComponent: alternativeIdentifiers from query params:', alternativeIdentifiers);
+          this.urn = alternativeIdentifiers.fileVersionUrn;
+        } catch (error) {
+          console.error('ElementGroupDetailsComponent: Error parsing alternativeIdentifiers:', error);
+        }
+      } else {
+        console.log('ElementGroupDetailsComponent: No alternativeIdentifiers in query params');
+      }
     });
     
     // Get accUserId from local storage or other source
@@ -97,6 +121,13 @@ export class ElementGroupDetailsComponent implements OnInit {
         console.log('ElementGroupDetailsComponent: Element group details response:', response);
         this.elementGroupData = response;
         
+        // Log alternativeIdentifiers if available
+        if (response && response.alternativeIdentifiers) {
+          console.log('ElementGroupDetailsComponent: alternativeIdentifiers:', response.alternativeIdentifiers);
+        } else {
+          console.log('ElementGroupDetailsComponent: No alternativeIdentifiers found in response');
+        }
+        
         // Extract categories from the response
         if (response && response.distinctPropertyValuesInElementGroupByName && response.distinctPropertyValuesInElementGroupByName.results) {
           this.categories = response.distinctPropertyValuesInElementGroupByName.results;
@@ -141,6 +172,31 @@ export class ElementGroupDetailsComponent implements OnInit {
 
   onRule1Click() {
     console.log('ElementGroupDetailsComponent: Rule 1 button clicked');
+    this.ruleType = 'rule1';
+    this.showRuleModal = true;
+  }
+
+  onRule2Click() {
+    console.log('ElementGroupDetailsComponent: Rule 2 button clicked');
+    this.ruleType = 'rule2';
+    this.showRuleModal = true;
+  }
+
+  onRule3Click() {
+    console.log('ElementGroupDetailsComponent: Rule 3 button clicked');
+    this.ruleType = 'rule3';
+    this.showRuleModal = true;
+  }
+
+  onRule4Click() {
+    console.log('ElementGroupDetailsComponent: Rule 4 button clicked');
+    this.ruleType = 'rule4';
+    this.showRuleModal = true;
+  }
+
+  onRule5Click() {
+    console.log('ElementGroupDetailsComponent: Rule 5 button clicked');
+    this.ruleType = 'rule5';
     this.showRuleModal = true;
   }
 
@@ -164,5 +220,58 @@ export class ElementGroupDetailsComponent implements OnInit {
   toggleEvaluation() {
     console.log('ElementGroupDetailsComponent: Evaluation toggle clicked');
     this.showEvaluation = !this.showEvaluation;
+  }
+
+  ngAfterViewInit() {
+    // Use setTimeout to defer viewer initialization and avoid ExpressionChangedAfterItHasBeenCheckedError
+    setTimeout(() => {
+      this.initViewer();
+    }, 0);
+  }
+
+  initViewer() {
+    console.log('ElementGroupDetailsComponent: initViewer called');
+    
+    if (!this.viewerContainer) {
+      console.error('Viewer container not found');
+      return;
+    }
+
+    const container = this.viewerContainer.nativeElement;
+    console.log('ElementGroupDetailsComponent: Viewer container found, dimensions:', {
+      width: container.offsetWidth,
+      height: container.offsetHeight,
+      clientWidth: container.clientWidth,
+      clientHeight: container.clientHeight
+    });
+
+    // Ensure container has proper dimensions
+    if (container.offsetWidth === 0 || container.offsetHeight === 0) {
+      console.warn('ElementGroupDetailsComponent: Container has zero dimensions, waiting for layout');
+      // Wait a bit for layout to complete
+      setTimeout(() => {
+        this.initViewer();
+      }, 100);
+      return;
+    }
+
+    console.log('ElementGroupDetailsComponent: Viewer container found, starting initialization');
+    this.viewerLoading = true;
+    this.viewerError = '';
+
+    const id = this.urn;
+    const urn = window.btoa(id).replace(/=/g, '')
+
+    this.viewerService.initViewer(container, urn)
+      .then((viewer) => {
+        console.log('ElementGroupDetailsComponent: Viewer initialized successfully');
+        this.viewer = viewer;
+        this.viewerLoading = false;
+      })
+      .catch((error) => {
+        console.error('ElementGroupDetailsComponent: Error initializing viewer:', error);
+        this.viewerError = 'Failed to load 3D viewer: ' + (error.message || error);
+        this.viewerLoading = false;
+      });
   }
 } 

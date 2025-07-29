@@ -12,6 +12,10 @@ export class SidebarComponent {
   @Input() showRules: boolean = false;
   @Output() documentsClick = new EventEmitter<void>();
   @Output() rule1Click = new EventEmitter<void>();
+  @Output() rule2Click = new EventEmitter<void>();
+  @Output() rule3Click = new EventEmitter<void>();
+  @Output() rule4Click = new EventEmitter<void>();
+  @Output() rule5Click = new EventEmitter<void>();
 
   showRulesSubmenu = false;
 
@@ -28,22 +32,18 @@ export class SidebarComponent {
   }
 
   onRule2Click() {
-    // Dummy method for Rule 2
-    console.log('Rule 2 clicked (dummy)');
+    this.rule2Click.emit();
   }
 
   onRule3Click() {
-    // Dummy method for Rule 3
-    console.log('Rule 3 clicked (dummy)');
+    this.rule3Click.emit();
   }
 
   onRule4Click() {
-    // Dummy method for Rule 4
-    console.log('Rule 4 clicked (dummy)');
+    this.rule4Click.emit();
   }
 
   onRule5Click() {
-    // Dummy method for Rule 5
-    console.log('Rule 5 clicked (dummy)');
+    this.rule5Click.emit();
   }
 } 

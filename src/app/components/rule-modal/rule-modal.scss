@@ -295,10 +295,59 @@
           }
         }
 
-        .result-message {
-          font-size: 0.9rem;
-          color: #333;
-          line-height: 1.4;
+        .result-details {
+          .result-message {
+            font-size: 0.9rem;
+            color: #333;
+            line-height: 1.4;
+            margin-bottom: 8px;
+          }
+
+          .result-properties {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 6px;
+            font-size: 0.8rem;
+
+            .property-label {
+              color: #666;
+              font-weight: 500;
+            }
+
+            .property-value {
+              color: #333;
+              background-color: #f8f9fa;
+              padding: 2px 6px;
+              border-radius: 3px;
+              font-family: 'Courier New', monospace;
+            }
+          }
+
+          .result-ifc {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+
+            .ifc-label {
+              color: #666;
+              font-weight: 500;
+            }
+
+            .ifc-value {
+              color: #333;
+              background-color: #e3f2fd;
+              padding: 2px 6px;
+              border-radius: 3px;
+              font-family: 'Courier New', monospace;
+              font-size: 0.75rem;
+              max-width: 200px;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            }
+          }
         }
       }
     }
