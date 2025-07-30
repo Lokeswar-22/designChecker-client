@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface UploadHub {
   type: string;
@@ -266,7 +267,7 @@ export type UploadProjectsResponse = UploadProject[];
   providedIn: 'root'
 })
 export class UploadService {
-  private baseUrl = 'http://localhost:3005';
+  private baseUrl = environment.apiBaseUrl;
 
   constructor(
     private http: HttpClient

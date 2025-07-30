@@ -5,6 +5,7 @@ import { catchError, map, tap, delay } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { jwtDecode } from 'jwt-decode';
 import { LocalService } from './local.service';
+import { environment } from '../../environments/environment';
 
 export interface LoginRequest {
   username: string;
@@ -100,7 +101,7 @@ export class AuthService {
   login(credentials: LoginRequest): Observable<LoginResponse> {
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
     
-    return this.http.post<LoginResponse>('http://localhost:3005/auth/login', credentials, { headers })
+    return this.http.post<LoginResponse>(environment.authEndpoints.login, credentials, { headers })
       .pipe(
         tap(response => {
           // Only handle successful login if success is true or undefined (for backward compatibility)
@@ -346,7 +347,7 @@ export class AuthService {
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
     const body = { userID: userData.userID || userData.id };
 
-    return this.http.post('http://localhost:3005/api/acc-auth/check-acc-status', body, { headers })
+    return this.http.post(environment.authEndpoints.checkAccStatus, body, { headers })
       .pipe(
         catchError(error => {
           console.error('ACC status check failed:', error);

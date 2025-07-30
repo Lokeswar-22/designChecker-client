@@ -4,6 +4,7 @@ import { UploadService, UploadHub, UploadProject, UploadFolder } from '../../ser
 import { LocalService } from '../../services/local.service';
 import { AuthService } from '../../services/auth.service';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 interface UploadTreeNode {
   id: string;
@@ -422,7 +423,7 @@ export class UploadModalComponent implements OnInit, OnChanges {
       console.log('UploadModalComponent: FormData entry:', key, '=', value);
     }
 
-    this.http.post('http://localhost:3005/acc-docs-upload/upload', formData).subscribe({
+    this.http.post(environment.uploadEndpoints.upload, formData).subscribe({
       next: (response: any) => {
         console.log('UploadModalComponent: Upload successful:', response);
         clearInterval(progressInterval);

@@ -13,7 +13,7 @@
 }
 
 .modal-content {
-  background: white;
+  background: var(--White-color);
   border-radius: 12px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   width: 90%;
@@ -29,14 +29,14 @@
   align-items: center;
   justify-content: space-between;
   padding: 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
-  background-color: #f9fafb;
+  border-bottom: 1px solid var(--text-color-lightgrey);
+  background-color: var(--bs-light);
   
   h2 {
     margin: 0;
     font-size: 1.25rem;
     font-weight: 600;
-    color: #374151;
+    color: var(--text-color);
   }
   
   .close-button {
@@ -45,12 +45,11 @@
     cursor: pointer;
     padding: 0.5rem;
     border-radius: 6px;
-    color: #000000;
-    transition: all 0.2s;
+    color: var(--text-color);
     
     &:hover {
-      background-color: #fef3c7;
-      color: #000000;
+      background-color: rgba(232, 193, 31, 0.1);
+      color: var(--text-color);
     }
   }
 }
@@ -62,8 +61,8 @@
 }
 
 .upload-progress {
-  background: #fef3c7;
-  border: 1px solid #fbbf24;
+  background: rgba(232, 193, 31, 0.1);
+  border: 1px solid var(--primary-color);
   border-radius: 8px;
   padding: 1rem;
   margin-bottom: 1.5rem;
@@ -76,13 +75,13 @@
     
     h4 {
       margin: 0;
-      color: #92400e;
+      color: var(--secondary-color);
       font-size: 1rem;
       font-weight: 600;
     }
     
     .progress-text {
-      color: #92400e;
+      color: var(--secondary-color);
       font-weight: 600;
       font-size: 0.875rem;
     }
@@ -91,22 +90,21 @@
   .progress-bar {
     width: 100%;
     height: 8px;
-    background-color: #fde68a;
+    background-color: rgba(232, 193, 31, 0.3);
     border-radius: 4px;
     overflow: hidden;
     margin-bottom: 0.5rem;
     
     .progress-fill {
       height: 100%;
-      background-color: #fbbf24;
+      background-color: var(--primary-color);
       border-radius: 4px;
-      transition: width 0.3s ease;
     }
   }
   
   .file-name {
     margin: 0;
-    color: #92400e;
+    color: var(--secondary-color);
     font-size: 0.875rem;
     font-weight: 500;
   }
@@ -119,16 +117,16 @@
     h3 {
       font-size: 1.125rem;
       font-weight: 600;
-      color: #374151;
+      color: var(--text-color);
       margin: 0;
     }
   }
 }
 
 .tree-container {
-  background: white;
+  background: var(--White-color);
   border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--text-color-lightgrey);
   overflow: hidden;
 }
 
@@ -142,15 +140,15 @@
   .spinner {
     width: 32px;
     height: 32px;
-    border: 3px solid #f3f4f6;
-    border-top: 3px solid #fbbf24;
+    border: 3px solid var(--bs-light);
+    border-top: 3px solid var(--primary-color);
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin-bottom: 1rem;
   }
   
   p {
-    color: #6b7280;
+    color: var(--text-color-grey);
     font-size: 0.875rem;
     margin: 0;
   }
@@ -166,24 +164,22 @@
     align-items: center;
     padding: 0.75rem 1rem;
     cursor: pointer;
-    transition: background-color 0.2s;
     border-radius: 4px;
     margin: 2px 0;
     
     &:hover {
-      background-color: #fef3c7;
+      background-color: rgba(232, 193, 31, 0.1);
     }
     
     .node-icon {
       margin-right: 0.75rem;
-      color: #000000;
+      color: var(--text-color);
       flex-shrink: 0;
     }
     
     .node-expand-icon {
       margin-right: 0.5rem;
-      color: #000000;
-      transition: transform 0.2s;
+      color: var(--text-color);
       flex-shrink: 0;
     }
     
@@ -194,8 +190,8 @@
       .mini-spinner {
         width: 16px;
         height: 16px;
-        border: 2px solid #f3f4f6;
-        border-top: 2px solid #fbbf24;
+        border: 2px solid var(--bs-light);
+        border-top: 2px solid var(--primary-color);
         border-radius: 50%;
         animation: spin 1s linear infinite;
       }
@@ -204,7 +200,7 @@
     .node-name {
       flex: 1;
       font-size: 0.875rem;
-      color: #374151;
+      color: var(--text-color);
       font-weight: 500;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -214,29 +210,28 @@
     .upload-button {
       margin-left: 0.5rem;
       padding: 0.25rem 0.5rem;
-      background-color: #fbbf24;
-      color: #000000;
+      background-color: var(--primary-color);
+      color: var(--secondary-color);
       border: none;
       border-radius: 4px;
       font-size: 0.75rem;
       font-weight: 500;
       cursor: pointer;
-      transition: all 0.2s;
       flex-shrink: 0;
       display: flex;
       align-items: center;
       gap: 0.25rem;
       
       &:hover:not(:disabled) {
-        background-color: #f59e0b;
+        background-color: var(--bs-btn-hover-bg);
       }
       
       &:active:not(:disabled) {
-        background-color: #d97706;
+        background-color: var(--bs-btn-active-bg);
       }
       
       &:disabled {
-        background-color: #9ca3af;
+        background-color: var(--text-color-lightgrey);
         cursor: not-allowed;
         opacity: 0.7;
       }
@@ -249,8 +244,8 @@
       .upload-spinner {
         width: 14px;
         height: 14px;
-        border: 2px solid rgba(0, 0, 0, 0.2);
-        border-top: 2px solid #000000;
+        border: 2px solid rgba(34, 34, 33, 0.2);
+        border-top: 2px solid var(--secondary-color);
         border-radius: 50%;
         animation: spin 1s linear infinite;
       }
@@ -258,8 +253,8 @@
   }
   
   .node-children {
-    background-color: #f9fafb;
-    border-left: 2px solid #e5e7eb;
+    background-color: var(--bs-light);
+    border-left: 2px solid var(--text-color-lightgrey);
     margin-left: 1rem;
     border-radius: 0 4px 4px 0;
     
@@ -270,13 +265,13 @@
         margin: 2px 0;
         
         &:hover {
-          background-color: #f3f4f6;
+          background-color: var(--bs-light);
         }
       }
       
       .node-children {
-        background-color: #f3f4f6;
-        border-left: 2px solid #d1d5db;
+        background-color: var(--bs-light);
+        border-left: 2px solid var(--text-color-grey);
         margin-left: 1rem;
         
         .grandchild-node {
@@ -286,13 +281,13 @@
             margin: 2px 0;
             
             &:hover {
-              background-color: #e5e7eb;
+              background-color: var(--text-color-lightgrey);
             }
           }
           
           .node-children {
-            background-color: #e5e7eb;
-            border-left: 2px solid #9ca3af;
+            background-color: var(--text-color-lightgrey);
+            border-left: 2px solid var(--text-color-grey);
             margin-left: 1rem;
             
             .subfolder-node {
@@ -302,13 +297,13 @@
                 margin: 2px 0;
                 
                 &:hover {
-                  background-color: #d1d5db;
+                  background-color: var(--text-color-grey);
                 }
               }
               
               .node-children {
-                background-color: #d1d5db;
-                border-left: 2px solid #6b7280;
+                background-color: var(--text-color-grey);
+                border-left: 2px solid var(--text-color);
                 margin-left: 1rem;
                 
                 .sub-subfolder-node {
@@ -318,7 +313,8 @@
                     margin: 2px 0;
                     
                     &:hover {
-                      background-color: #9ca3af;
+                      background-color: var(--text-color);
+                      color: var(--White-color);
                     }
                   }
                 }
@@ -341,8 +337,8 @@
   justify-content: flex-end;
   gap: 1rem;
   padding: 1.5rem;
-  border-top: 1px solid #e5e7eb;
-  background-color: #f9fafb;
+  border-top: 1px solid var(--text-color-lightgrey);
+  background-color: var(--bs-light);
   
   .btn {
     padding: 0.75rem 1.5rem;
@@ -351,27 +347,26 @@
     font-size: 0.875rem;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s;
     
     &.btn-secondary {
-      background-color: #f3f4f6;
-      color: #374151;
+      background-color: var(--bs-light);
+      color: var(--text-color);
       
       &:hover {
-        background-color: #e5e7eb;
+        background-color: var(--text-color-lightgrey);
       }
     }
     
     &.btn-primary {
-      background-color: #fbbf24;
-      color: #000000;
+      background-color: var(--primary-color);
+      color: var(--secondary-color);
       
       &:hover {
-        background-color: #f59e0b;
+        background-color: var(--bs-btn-hover-bg);
       }
       
       &:disabled {
-        background-color: #9ca3af;
+        background-color: var(--text-color-lightgrey);
         cursor: not-allowed;
         opacity: 0.7;
       }

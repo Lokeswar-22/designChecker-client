@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { LocalService } from "./local.service";
 import * as THREE from "three";
+import { environment } from "../../environments/environment";
 
 declare const Autodesk: any;
 
@@ -23,7 +24,7 @@ export class ViewerService {
 
     async getAccessToken(): Promise<string> {
         try {
-            const response = await this.http.get<{access_token: string, expires_in: number}>('http://localhost:3005/api/acc-auth/viewer-token').toPromise();
+            const response = await this.http.get<{access_token: string, expires_in: number}>(environment.accAuthEndpoints.viewerToken).toPromise();
             return response!.access_token;
         } catch (error) {
             console.error('Error getting access token from backend:', error);

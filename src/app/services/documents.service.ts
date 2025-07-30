@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth.service';
+import { environment } from '../../environments/environment';
 
 export interface Hub {
   id: string;
@@ -53,7 +54,7 @@ export interface ElementGroupsResponse {
   providedIn: 'root'
 })
 export class DocumentsService {
-  private baseUrl = 'http://localhost:3005';
+  private baseUrl = environment.apiBaseUrl;
 
   constructor(
     private http: HttpClient,

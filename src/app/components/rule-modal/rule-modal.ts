@@ -4,6 +4,7 @@ import { RuleService, RuleCheckResponse } from '../../services/rule.service';
 import { LocalService } from '../../services/local.service';
 import { ViewerService } from '../../services/viewer.service';
 import { ActivatedRoute } from '@angular/router';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-rule-modal',
@@ -30,7 +31,7 @@ export class RuleModalComponent implements OnInit {
     private localService: LocalService,
     private viewerService: ViewerService,
     private route: ActivatedRoute,
-
+    private toastService: ToastService
   ) {}
 
   ngOnInit() {
@@ -306,11 +307,26 @@ export class RuleModalComponent implements OnInit {
     console.log('Failed element count:', failedElements.length);
     console.log('Failed elements:', failedElements);
   
+    let successfulIssues = 0;
+    let processedIssues = 0;
+    const totalIssues = failedElements.length;
+  
+    const showToastIfComplete = () => {
+      processedIssues++;
+      if (processedIssues === totalIssues && successfulIssues > 0) {
+        const message = successfulIssues === 1 
+          ? '1 issue created in ACC' 
+          : `${successfulIssues} issues created in ACC`;
+        this.toastService.showSuccess(message);
+      }
+    };
+  
     for (const element of failedElements) {
       const revitId = element.revitElementId;
   
       if (!revitId) {
         console.warn('Skipping element due to missing Revit Element ID');
+        showToastIfComplete();
         continue;
       }
   
@@ -327,19 +343,24 @@ export class RuleModalComponent implements OnInit {
           
           // Make POST request to create issue
           console.log('About to create issue for Revit Element ID:', revitId);
-          // this.ruleService.createIssue(this.projectId!, this.accUserId, result).subscribe({
-          //   next: (response: any) => {
-          //     console.log('Issue created successfully for Revit Element ID', revitId, ':', response);
-          //   },
-          //   error: (error: any) => {
-          //     console.error('Error creating issue for Revit Element ID', revitId, ':', error);
-          //   }
-          // });
+          this.ruleService.createIssue(this.projectId!, this.accUserId, result).subscribe({
+            next: (response: any) => {
+              console.log('Issue created successfully for Revit Element ID', revitId, ':', response);
+              successfulIssues++;
+              showToastIfComplete();
+            },
+            error: (error: any) => {
+              console.error('Error creating issue for Revit Element ID', revitId, ':', error);
+              showToastIfComplete();
+            }
+          });
         } else {
           console.warn(`No result returned from processModel for Revit Element ID ${revitId}`);
+          showToastIfComplete();
         }
       } catch (error) {
         console.error(`Error processing Revit Element ID ${revitId}:`, error);
+        showToastIfComplete();
       }
     }
   

@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { LocalService } from '../../services/local.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-sync-modal',
@@ -61,7 +62,7 @@ export class SyncModalComponent {
     });
 
     this.http.post(
-      `http://localhost:3005/api/acc-auth/sync?accUserId=${accUserId}&userID=${userID}`,
+      `${environment.accAuthEndpoints.sync}?accUserId=${accUserId}&userID=${userID}`,
       {}
     ).subscribe((response) => {
       console.log("SYNC RESPONSE", response);

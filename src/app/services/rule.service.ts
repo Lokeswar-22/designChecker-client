@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface RuleCheckRequest {
   elementGroupId: string;
@@ -79,7 +80,7 @@ export interface IssuesResponse {
   providedIn: 'root'
 })
 export class RuleService {
-  private baseUrl = 'http://localhost:3005';
+  private baseUrl = environment.apiBaseUrl;
   public projectID: string = '';
   public accUserID: string = '';
 

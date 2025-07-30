@@ -1,5 +1,60 @@
 /* You can add global styles to this file, and also import other style files */
 
+/* ===== COMPLETE UI GUIDE & COLOR GRADING SYSTEM ===== */
+
+/* 🎨 Primary Color Palette */
+:root {
+  /* Core Brand Colors */
+  --primary-color: #E8C11F;          /* Golden Yellow - Main brand color */
+  --primary-color2: #E8C11F;         /* Golden Yellow - Secondary brand color */
+  --secondary-color: #222221;        /* Dark Charcoal - Secondary brand color */
+  --secondary-color1: #ffffff;       /* Pure White */
+
+  /* Text Colors */
+  --text-color: #222221;             /* Primary text color */
+  --text-color-grey: #666666;        /* Secondary text color */
+  --text-color-lightgrey: #999999;   /* Muted text color */
+
+  /* Background Colors */
+  --background-color: #f0f0f0;       /* Main background - Light gray */
+  --White-color: #ffffff;            /* Pure white backgrounds */
+  --black-color: #222221;            /* Dark backgrounds */
+  --lightblue: #dcf3ff;              /* Light blue backgrounds */
+
+  /* 🌈 Bootstrap Color System */
+  --bs-primary: #E8C11F;             /* Golden Yellow */
+  --bs-secondary: #fff;              /* White */
+  --bs-success: #2fb380;             /* Green */
+  --bs-info: #03BA8E;                /* Teal */
+  --bs-warning: #f4bd61;             /* Orange */
+  --bs-danger: #da292e;              /* Red */
+  --bs-light: #f8f9fa;               /* Light Gray */
+  --bs-dark: #212529;                /* Dark Gray */
+
+  /* 🎯 Status Colors (Business Logic) */
+  --status-create-open: #eca91d;         /* Create/Open - Golden */
+  --status-not-started: #f8765f;         /* Not Started - Orange */
+  --status-delayed-end: #FF474D;         /* Delayed End - Red */
+  --status-delayed-start: #ff9248;       /* Delayed Start - Orange */
+  --status-in-progress: #287bb5;         /* In Progress - Blue */
+  --status-review: #3459e6;              /* Review - Indigo */
+  --status-rejected: #da292e;            /* Rejected/Declined - Red */
+  --status-closed: #2fb380;              /* Closed/Released - Green */
+
+  /* 🔧 Component-Specific Colors */
+  /* Button Colors */
+  --bs-btn-color: #222221;           /* Text color */
+  --bs-btn-bg: #E8C11F;              /* Background */
+  --bs-btn-border-color: #E8C11F;    /* Border */
+  --bs-btn-hover-bg: #ddbc36;        /* Hover background */
+  --bs-btn-active-bg: #ceac26;       /* Active background */
+
+  /* Info Button */
+  --bs-btn-info-color: #fff;         /* Text color */
+  --bs-btn-info-bg: #222221;         /* Background */
+  --bs-btn-info-hover-bg: #42423f;   /* Hover background */
+}
+
 /* Global reset and base styles */
 * {
   margin: 0;
@@ -15,8 +70,8 @@ html, body {
 }
 
 body {
-  background-color: #ffffff;
-  color: #1e293b;
+  background-color: var(--background-color);
+  color: var(--text-color);
   line-height: 1.6;
 }
 
@@ -25,3 +80,91 @@ app-root {
   display: block;
   height: 100vh;
 }
+
+/* 🎨 Special Color Classes */
+.bg-light-warning { background-color: #fdf6e8; }
+.bg-light-blue { background-color: #cce9ff; }
+.bg-light-primary { background-color: #d6defa; }
+.bg-orange { background-color: #f8765f; }
+.bg-light-yellow { background-color: rgba(255, 255, 0, 0.3); }
+
+/* Status Color Classes */
+.status-create-open { color: var(--status-create-open); }
+.status-not-started { color: var(--status-not-started); }
+.status-delayed-end { color: var(--status-delayed-end); }
+.status-delayed-start { color: var(--status-delayed-start); }
+.status-in-progress { color: var(--status-in-progress); }
+.status-review { color: var(--status-review); }
+.status-rejected { color: var(--status-rejected); }
+.status-closed { color: var(--status-closed); }
+
+/* Bootstrap Override Classes */
+.btn-primary {
+  background-color: var(--bs-primary) !important;
+  border-color: var(--bs-primary) !important;
+  color: var(--bs-btn-color) !important;
+}
+
+.btn-primary:hover {
+  background-color: var(--bs-btn-hover-bg) !important;
+  border-color: var(--bs-btn-hover-bg) !important;
+}
+
+.btn-secondary {
+  background-color: var(--bs-secondary) !important;
+  border-color: var(--bs-secondary) !important;
+  color: var(--secondary-color) !important;
+}
+
+.btn-success {
+  background-color: var(--bs-success) !important;
+  border-color: var(--bs-success) !important;
+}
+
+.btn-info {
+  background-color: var(--bs-info) !important;
+  border-color: var(--bs-info) !important;
+}
+
+.btn-warning {
+  background-color: var(--bs-warning) !important;
+  border-color: var(--bs-warning) !important;
+}
+
+.btn-danger {
+  background-color: var(--bs-danger) !important;
+  border-color: var(--bs-danger) !important;
+}
+
+.btn-light {
+  background-color: var(--bs-light) !important;
+  border-color: var(--bs-light) !important;
+  color: var(--text-color) !important;
+}
+
+.btn-dark {
+  background-color: var(--bs-dark) !important;
+  border-color: var(--bs-dark) !important;
+}
+
+/* Text Color Classes */
+.text-primary { color: var(--primary-color) !important; }
+.text-secondary { color: var(--secondary-color) !important; }
+.text-success { color: var(--bs-success) !important; }
+.text-info { color: var(--bs-info) !important; }
+.text-warning { color: var(--bs-warning) !important; }
+.text-danger { color: var(--bs-danger) !important; }
+.text-light { color: var(--bs-light) !important; }
+.text-dark { color: var(--bs-dark) !important; }
+.text-muted { color: var(--text-color-grey) !important; }
+
+/* Background Color Classes */
+.bg-primary { background-color: var(--primary-color) !important; }
+.bg-secondary { background-color: var(--secondary-color) !important; }
+.bg-success { background-color: var(--bs-success) !important; }
+.bg-info { background-color: var(--bs-info) !important; }
+.bg-warning { background-color: var(--bs-warning) !important; }
+.bg-danger { background-color: var(--bs-danger) !important; }
+.bg-light { background-color: var(--bs-light) !important; }
+.bg-dark { background-color: var(--bs-dark) !important; }
+.bg-white { background-color: var(--White-color) !important; }

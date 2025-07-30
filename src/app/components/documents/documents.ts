@@ -117,20 +117,16 @@ export class DocumentsComponent implements OnInit {
 
   onElementGroupClick(elementGroup: TreeNode) {
     console.log('DocumentsComponent: Element group clicked:', elementGroup);
-    if (elementGroup.type === 'elementGroup') {
-      // Navigate to element group details page
-      const alternativeIdentifiersParam = elementGroup.alternativeIdentifiers ? 
-        encodeURIComponent(JSON.stringify(elementGroup.alternativeIdentifiers)) : '';
-      const url = `/element-group/${elementGroup.id}/${encodeURIComponent(elementGroup.name)}`;
-      console.log('DocumentsComponent: Navigating to:', url);
-      console.log('DocumentsComponent: alternativeIdentifiers:', elementGroup.alternativeIdentifiers);
-      this.router.navigate([url], {
-        queryParams: {
-          alternativeIdentifiers: alternativeIdentifiersParam
-        }
-      });
-    }
+    
+    // Navigate to element group details page using the correct route format
+    this.router.navigate(['/element-group', elementGroup.id, elementGroup.name], {
+      queryParams: {
+        alternativeIdentifiers: JSON.stringify(elementGroup.alternativeIdentifiers)
+      }
+    });
   }
+
+
 
   loadTreeData() {
     console.log('DocumentsComponent: loadTreeData called');

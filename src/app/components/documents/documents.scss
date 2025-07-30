@@ -7,8 +7,8 @@
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background-color: #ffffff;
-  color: #1e293b;
+  background-color: var(--White-color);
+  color: var(--text-color);
   line-height: 1.6;
   overflow-x: hidden;
 }
@@ -30,9 +30,8 @@ body {
 .main-content {
   flex: 1;
   padding: 32px;
-  background-color: #ffffff;
+  background-color: var(--White-color);
   overflow-y: auto;
-  transition: all 0.3s ease;
 }
 
 .welcome-section {
@@ -45,17 +44,13 @@ body {
 .welcome-section h2 {
   font-size: 2.5rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--primary-color);
   margin-bottom: 16px;
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .welcome-section p {
   font-size: 1.125rem;
-  color: #64748b;
+  color: var(--text-color-grey);
   margin-bottom: 32px;
 }
 
@@ -72,31 +67,31 @@ body {
 .empty-tree-icon {
   width: 120px;
   height: 120px;
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  background: var(--bs-light);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 24px;
-  border: 2px dashed #cbd5e1;
+  border: 2px dashed var(--text-color-lightgrey);
 }
 
 .empty-tree-icon svg {
   width: 48px;
   height: 48px;
-  color: #94a3b8;
+  color: var(--text-color-grey);
 }
 
 .empty-tree-text {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #475569;
+  color: var(--text-color);
   margin-bottom: 12px;
 }
 
 .empty-tree-subtext {
   font-size: 1rem;
-  color: #64748b;
+  color: var(--text-color-grey);
   max-width: 400px;
 }
 
@@ -109,7 +104,6 @@ body {
     height: calc(100vh - 70px);
     z-index: 1000;
     transform: translateX(-100%);
-    transition: transform 0.3s ease;
   }
   
   .sidebar.mobile-hidden {
@@ -244,7 +238,7 @@ body {
     h3 {
       font-size: 1.25rem;
       font-weight: 600;
-      color: #374151;
+      color: var(--text-color);
       margin: 0;
     }
     
@@ -253,21 +247,20 @@ body {
       align-items: center;
       gap: 0.5rem;
       padding: 0.75rem 1rem;
-      background-color: #fbbf24;
-      color: #000000;
+      background-color: var(--primary-color);
+      color: var(--secondary-color);
       border: none;
       border-radius: 6px;
       font-size: 0.875rem;
       font-weight: 500;
       cursor: pointer;
-      transition: all 0.2s;
       
       &:hover {
-        background-color: #f59e0b;
+        background-color: var(--bs-btn-hover-bg);
       }
       
       &:active {
-        background-color: #d97706;
+        background-color: var(--bs-btn-active-bg);
       }
       
       svg {
@@ -278,9 +271,9 @@ body {
 }
 
 .tree-container {
-  background: white;
+  background: var(--White-color);
   border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--text-color-lightgrey);
   overflow: hidden;
 }
 
@@ -294,15 +287,15 @@ body {
   .spinner {
     width: 32px;
     height: 32px;
-    border: 3px solid #f3f4f6;
-    border-top: 3px solid #fbbf24;
+    border: 3px solid var(--bs-light);
+    border-top: 3px solid var(--primary-color);
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin-bottom: 1rem;
   }
   
   p {
-    color: #6b7280;
+    color: var(--text-color-grey);
     font-size: 0.875rem;
     margin: 0;
   }
@@ -318,24 +311,22 @@ body {
     align-items: center;
     padding: 0.75rem 1rem;
     cursor: pointer;
-    transition: background-color 0.2s;
     border-radius: 4px;
     margin: 2px 0;
     
     &:hover {
-      background-color: #f3f4f6;
+      background-color: var(--bs-light);
     }
     
     .node-icon {
       margin-right: 0.75rem;
-      color: #6b7280;
+      color: var(--text-color-grey);
       flex-shrink: 0;
     }
     
     .node-expand-icon {
       margin-right: 0.5rem;
-      color: #9ca3af;
-      transition: transform 0.2s;
+      color: var(--text-color-lightgrey);
       flex-shrink: 0;
     }
     
@@ -346,8 +337,8 @@ body {
       .mini-spinner {
         width: 16px;
         height: 16px;
-        border: 2px solid #f3f4f6;
-        border-top: 2px solid #fbbf24;
+        border: 2px solid var(--bs-light);
+        border-top: 2px solid var(--primary-color);
         border-radius: 50%;
         animation: spin 1s linear infinite;
       }
@@ -356,7 +347,7 @@ body {
     .node-name {
       flex: 1;
       font-size: 0.875rem;
-      color: #374151;
+      color: var(--text-color);
       font-weight: 500;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -365,8 +356,8 @@ body {
   }
   
   .node-children {
-    background-color: #f9fafb;
-    border-left: 2px solid #e5e7eb;
+    background-color: var(--bs-light);
+    border-left: 2px solid var(--text-color-lightgrey);
     margin-left: 1rem;
     border-radius: 0 4px 4px 0;
     
@@ -377,13 +368,13 @@ body {
         margin: 2px 0;
         
         &:hover {
-          background-color: #f3f4f6;
+          background-color: var(--bs-light);
         }
       }
       
       .node-children {
-        background-color: #fef3c7;
-        border-left: 2px solid #fbbf24;
+        background-color: rgba(232, 193, 31, 0.1);
+        border-left: 2px solid var(--primary-color);
         margin-left: 1rem;
         border-radius: 0 4px 4px 0;
         
@@ -395,15 +386,15 @@ body {
             cursor: pointer;
             
             &:hover {
-              background-color: #fde68a;
+              background-color: rgba(232, 193, 31, 0.2);
             }
             
             .node-icon {
-              color: #fbbf24;
+              color: var(--primary-color);
             }
             
             .node-name {
-              color: #92400e;
+              color: var(--secondary-color);
               font-weight: 400;
             }
           }

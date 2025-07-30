@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, interval, timer, of } from 'rxjs';
 import { switchMap, takeWhile, tap, catchError } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 export interface AutodeskAuthResponse {
   message: string;
@@ -35,7 +36,7 @@ export class AutodeskAuthService {
   initiateAutodeskAuth(): void {
     // Open the Autodesk authentication page in a new window
     this.authWindow = window.open(
-      'http://localhost:3005/api/acc-auth/login',
+      environment.accAuthEndpoints.login,
       'autodesk_auth',
       'width=800,height=600,scrollbars=yes,resizable=yes'
     );
@@ -344,7 +345,7 @@ export class AutodeskAuthService {
     setTimeout(() => {
       console.log('Checking authentication status after 5 second delay...');
       
-      this.http.get<AutodeskAuthResponse>('http://localhost:3005/api/acc-auth/status')
+      this.http.get<AutodeskAuthResponse>(environment.accAuthEndpoints.status)
         .pipe(
           tap(response => {
             console.log('=== STATUS API RESPONSE ===');
@@ -429,7 +430,7 @@ export class AutodeskAuthService {
       setTimeout(() => {
         console.log('Making manual status check after 5 second delay...');
         
-        this.http.get<AutodeskAuthResponse>('http://localhost:3005/api/acc-auth/status')
+        this.http.get<AutodeskAuthResponse>(environment.accAuthEndpoints.status)
           .subscribe({
             next: (response) => {
               console.log('=== MANUAL STATUS CHECK RESPONSE ===');

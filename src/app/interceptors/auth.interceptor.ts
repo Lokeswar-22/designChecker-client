@@ -3,6 +3,7 @@ import { inject } from '@angular/core';
 import { Observable, throwError, BehaviorSubject } from 'rxjs';
 import { catchError, filter, take, switchMap } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
+import { environment } from '../../environments/environment';
 
 // Global state for refresh token handling
 let isRefreshing = false;
@@ -57,8 +58,11 @@ function addToken(request: HttpRequest<any>, token: string): HttpRequest<any> {
 
 function isAuthEndpoint(url: string): boolean {
   return url.includes('/api/auth/') || 
-         url.includes('localhost:3005/auth/') || 
-         url.includes('localhost:3005/api/acc-auth/');
+         url.includes(environment.authEndpoints.login) || 
+         url.includes(environment.accAuthEndpoints.login) ||
+         url.includes(environment.accAuthEndpoints.status) ||
+         url.includes(environment.accAuthEndpoints.sync) ||
+         url.includes(environment.accAuthEndpoints.viewerToken);
 }
 
 function handle401Error(
