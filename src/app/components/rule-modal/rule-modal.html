@@ -1,103 +1,196 @@
 <div class="modal-overlay" *ngIf="isVisible" (click)="onBackdropClick($event)">
   <div class="modal-content">
-    <div class="modal-header">
-      <h2 *ngIf="ruleType === 'rule1'">Rule 1 - Door Clear Opening Check</h2>
-      <h2 *ngIf="ruleType === 'rule2'">Rule 2 - Ramp Landing Check</h2>
-      <button class="close-button" (click)="onClose()">
-        <i class="fas fa-times"></i>
-      </button>
-    </div>
-
-    <div class="modal-body">
-      <!-- Loading State -->
-      <div *ngIf="loading" class="loading-state">
-        <div class="spinner"></div>
-        <p *ngIf="ruleType === 'rule1'">Checking door clear opening rules...</p>
-        <p *ngIf="ruleType === 'rule2'">Checking ramp landing rules...</p>
+    <!-- Acknowledgement Popup -->
+    <div *ngIf="showAcknowledgement" class="acknowledgement-content">
+      <div class="modal-header">
+        <h2>{{ ruleInfo.title }}</h2>
+        <button class="close-button" (click)="onCancel()">
+          <i class="fas fa-times"></i>
+        </button>
       </div>
 
-      <!-- Error State -->
-      <div *ngIf="error" class="error-state">
-        <i class="fas fa-exclamation-triangle"></i>
-        <p>{{ error }}</p>
-        <button class="retry-button" (click)="checkRule()">Retry</button>
-      </div>
+      <div class="modal-body">
+        <div class="acknowledgement-section">
+          <div class="rule-info-card">
+            <div class="info-section">
+              <h3>Rule Description</h3>
+              <p>{{ ruleInfo.description }}</p>
+            </div>
+            
+            <div class="info-section">
+              <h3>Category</h3>
+              <span class="category-badge">{{ ruleInfo.category }}</span>
+            </div>
 
-      <!-- Results State -->
-      <div *ngIf="!loading && !error && ruleData" class="results-state">
-        <!-- Summary Section -->
-        <div class="summary-section">
-          <div class="summary-card">
-            <div class="summary-item">
-              <span class="summary-label">Total Elements</span>
-              <span class="summary-value">{{ getTotalCount() }}</span>
-            </div>
-            <div class="summary-item passed">
-              <span class="summary-label">Passed</span>
-              <span class="summary-value">{{ getPassedCount() }}</span>
-            </div>
-            <div class="summary-item failed">
-              <span class="summary-label">Failed</span>
-              <span class="summary-value">{{ getFailedCount() }}</span>
-            </div>
-            <div class="summary-item">
-              <span class="summary-label">Pass Rate</span>
-              <span class="summary-value">{{ getPassPercentage() }}%</span>
-            </div>
-          </div>
-          
-          <!-- Issues Created Section -->
-          <div *ngIf="getIssuesCreated() > 0" class="issues-created-section">
-            <div class="issues-created-card">
-              <i class="fas fa-exclamation-circle"></i>
-              <span class="issues-created-text">{{ getIssuesCreated() }} issues are created in ACC</span>
-              <button class="view-issues-button" (click)="onShowAccIssues()">
-                <i class="fas fa-eye"></i>
-                View Issues
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Results List -->
-        <div class="results-section">
-          <h3>Detailed Results</h3>
-          <div class="results-list">
-            <div 
-              *ngFor="let result of getResults()" 
-              class="result-item"
-              [class.passed]="result.passed"
-              [class.failed]="!result.passed"
-            >
-              <div class="result-header">
-                <span class="element-id">{{ result.revitElementId }}</span>
-                <span class="status-badge" [class.passed]="result.passed" [class.failed]="!result.passed">
-                  {{ result.passed ? 'PASS' : 'FAIL' }}
-                </span>
+            <!-- Thresholds Section -->
+            <div class="info-section" *ngIf="ruleInfo.thresholds.requirement">
+              <h3>Compliance Requirements</h3>
+              <div class="thresholds-card">
+                <div class="requirement-text">
+                  <i class="fas fa-check-circle"></i>
+                  <span>{{ ruleInfo.thresholds.requirement }}</span>
+                </div>
+                
+                <div class="thresholds-grid" *ngIf="ruleInfo.thresholds.minimum !== null || ruleInfo.thresholds.maximum !== null">
+                  <div class="threshold-item" *ngIf="ruleInfo.thresholds.minimum !== null">
+                    <span class="threshold-label">Minimum</span>
+                    <span class="threshold-value">
+                      <ng-container *ngIf="typeof ruleInfo.thresholds.minimum === 'number'">
+                        {{ ruleInfo.thresholds.minimum }}
+                      </ng-container>
+                      <ng-container *ngIf="typeof ruleInfo.thresholds.minimum === 'string'">
+                        {{ ruleInfo.thresholds.minimum }}
+                      </ng-container>
+                      <ng-container *ngIf="typeof ruleInfo.thresholds.minimum === 'object' && ruleInfo.thresholds.minimum !== null">
+                        <div class="complex-threshold">
+                          <div>Clear Width: {{ ruleInfo.thresholds.minimum.clearWidth }} mm</div>
+                          <div>Transfer Zone: {{ ruleInfo.thresholds.minimum.transferZone.width }} × {{ ruleInfo.thresholds.minimum.transferZone.depth }} mm</div>
+                        </div>
+                      </ng-container>
+                      <span class="unit" *ngIf="ruleInfo.thresholds.unit">{{ ruleInfo.thresholds.unit }}</span>
+                    </span>
+                  </div>
+                  
+                  <div class="threshold-item" *ngIf="ruleInfo.thresholds.maximum !== null">
+                    <span class="threshold-label">Maximum</span>
+                    <span class="threshold-value">
+                      {{ ruleInfo.thresholds.maximum }}
+                      <span class="unit" *ngIf="ruleInfo.thresholds.unit">{{ ruleInfo.thresholds.unit }}</span>
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div class="result-details">
-                <div class="result-message">
-                  {{ result.message }}
-                </div>
-                <div class="result-properties" *ngIf="result.propertyUsed">
-                  <span class="property-label">Property:</span>
-                  <span class="property-value">{{ result.propertyUsed }}</span>
-                  <span class="property-label" *ngIf="result.widthMM !== null">Width:</span>
-                  <span class="property-value" *ngIf="result.widthMM !== null">{{ result.widthMM }} mm</span>
-                </div>
-                <div class="result-ifc" *ngIf="result.ifcGUID">
-                  <span class="ifc-label">IFC GUID:</span>
-                  <span class="ifc-value">{{ result.ifcGUID }}</span>
-                </div>
+            </div>
+            
+            <div class="info-section">
+              <h3>What will happen?</h3>
+              <p>{{ ruleInfo.executionInfo }}</p>
+            </div>
+            
+            <div class="warning-section">
+              <div class="warning-icon">
+                <i class="fas fa-info-circle"></i>
+              </div>
+              <div class="warning-content">
+                <h4>Important Information</h4>
+                <ul>
+                  <li>This process will analyze all {{ ruleInfo.category.toLowerCase() }} elements in the selected group</li>
+                  <li>ACC issues will be automatically created for failed elements</li>
+                  <li>The process may take a few moments to complete</li>
+                  <li>You can view the created issues in ACC after completion</li>
+                </ul>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      <div class="modal-footer">
+        <button class="cancel-button" (click)="onCancel()">Cancel</button>
+        <button class="continue-button" (click)="onContinue()">Continue</button>
+      </div>
     </div>
 
-    <div class="modal-footer">
-      <button class="close-modal-button" (click)="onClose()">Close</button>
+    <!-- Rule Check Results -->
+    <div *ngIf="!showAcknowledgement" class="rule-check-content">
+      <div class="modal-header">
+        <h2>{{ ruleInfo.title }}</h2>
+        <button class="close-button" (click)="onClose()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Loading State -->
+        <div *ngIf="loading" class="loading-state">
+          <div class="spinner"></div>
+          <p>Checking {{ ruleInfo.category.toLowerCase() }} rules...</p>
+        </div>
+
+        <!-- Error State -->
+        <div *ngIf="error" class="error-state">
+          <i class="fas fa-exclamation-triangle"></i>
+          <p>{{ error }}</p>
+          <button class="retry-button" (click)="checkRule()">Retry</button>
+        </div>
+
+        <!-- Results State -->
+        <div *ngIf="!loading && !error && ruleData" class="results-state">
+          <!-- Summary Section -->
+          <div class="summary-section">
+            <div class="summary-card">
+              <div class="summary-item">
+                <span class="summary-label">Total Elements</span>
+                <span class="summary-value">{{ getTotalCount() }}</span>
+              </div>
+              <div class="summary-item passed">
+                <span class="summary-label">Passed</span>
+                <span class="summary-value">{{ getPassedCount() }}</span>
+              </div>
+              <div class="summary-item failed">
+                <span class="summary-label">Failed</span>
+                <span class="summary-value">{{ getFailedCount() }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Pass Rate</span>
+                <span class="summary-value">{{ getPassPercentage() }}%</span>
+              </div>
+            </div>
+            
+            <!-- Issues Created Section -->
+            <div *ngIf="getIssuesCreated() > 0" class="issues-created-section">
+              <div class="issues-created-card">
+                <i class="fas fa-exclamation-circle"></i>
+                <span class="issues-created-text">{{ getIssuesCreated() }} issues are created in ACC</span>
+                <button class="view-issues-button" (click)="onShowAccIssues()">
+                  <i class="fas fa-eye"></i>
+                  View Issues
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Results List -->
+          <div class="results-section">
+            <h3>Detailed Results</h3>
+            <div class="results-list">
+              <div 
+                *ngFor="let result of getResults()" 
+                class="result-item"
+                [class.passed]="result.passed"
+                [class.failed]="!result.passed"
+              >
+                <div class="result-header">
+                  <span class="element-id">{{ result.revitElementId }}</span>
+                  <span class="status-badge" [class.passed]="result.passed" [class.failed]="!result.passed">
+                    {{ result.passed ? 'PASS' : 'FAIL' }}
+                  </span>
+                </div>
+                <div class="result-details">
+                  <div class="result-message">
+                    {{ result.message }}
+                  </div>
+                  <div class="result-properties" *ngIf="result.propertyUsed">
+                    <span class="property-label">Property:</span>
+                    <span class="property-value">{{ result.propertyUsed }}</span>
+                    <span class="property-label" *ngIf="result.widthMM !== null">Width:</span>
+                    <span class="property-value" *ngIf="result.widthMM !== null">{{ result.widthMM }} mm</span>
+                  </div>
+                  <div class="result-ifc" *ngIf="result.ifcGUID">
+                    <span class="ifc-label">IFC GUID:</span>
+                    <span class="ifc-value">{{ result.ifcGUID }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button *ngIf="highlight" class="cdpd-button" (click)="onCdpdClick()">Highlight the Failed Elements in viewer</button>
+        <button class="close-modal-button" (click)="onClose()">Close</button>
+      </div>
     </div>
   </div>
 </div> 

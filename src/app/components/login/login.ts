@@ -3,12 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { AuthService, LoginRequest } from '../../services/auth.service';
+import { AuthService, LoginRequest, RegisterRequest } from '../../services/auth.service';
 import { AutodeskAuthService } from '../../services/autodesk-auth.service';
 import { LocalService } from '../../services/local.service';
 import { SuccessModalComponent } from '../success-modal/success-modal';
 import { SyncModalComponent } from '../sync-modal/sync-modal';
 import { AutodeskLoadingComponent } from '../autodesk-loading/autodesk-loading';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-login',
@@ -23,10 +24,22 @@ export class LoginComponent implements OnInit, OnDestroy {
     password: ''
   };
 
+  registerData: RegisterRequest = {
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: ''
+  };
+
+  confirmPassword = '';
+  isLoginMode = true;
   isLoading = false;
   showPassword = false;
+  showConfirmPassword = false;
+  showRegisterPassword = false;
   rememberMe = false;
   errorMessage = '';
+  successMessage = '';
   showSuccessModal = false;
   showSyncModal = false;
   showAutodeskLoading = false;
@@ -38,7 +51,8 @@ export class LoginComponent implements OnInit, OnDestroy {
     private router: Router,
     private authService: AuthService,
     private autodeskAuthService: AutodeskAuthService,
-    private localService: LocalService
+    private localService: LocalService,
+    private toastService: ToastService
   ) {}
 
   ngOnInit() {
@@ -202,6 +216,76 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.rememberMe = !this.rememberMe;
   }
 
+  toggleLoginMode() {
+    this.isLoginMode = !this.isLoginMode;
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.resetForms();
+  }
+
+  resetForms() {
+    this.loginData = { username: '', password: '' };
+    this.registerData = { firstName: '', lastName: '', email: '', password: '' };
+    this.confirmPassword = '';
+    this.showPassword = false;
+    this.showConfirmPassword = false;
+    this.showRegisterPassword = false;
+    this.rememberMe = false;
+  }
+
+  onRegister() {
+    if (!this.registerData.firstName || !this.registerData.lastName || 
+        !this.registerData.email || !this.registerData.password || !this.confirmPassword) {
+      this.errorMessage = 'Please fill in all fields';
+      return;
+    }
+
+    if (this.registerData.password !== this.confirmPassword) {
+      this.errorMessage = 'Passwords do not match';
+      return;
+    }
+
+    if (this.registerData.password.length < 6) {
+      this.errorMessage = 'Password must be at least 6 characters long';
+      return;
+    }
+
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    this.authService.register(this.registerData).subscribe({
+      next: (response) => {
+        console.log('Registration successful:', response);
+        this.isLoading = false;
+        this.successMessage = 'Registration successful! Please login with your new account.';
+        
+        // Show success toast
+        this.toastService.showSuccess('Registration successful! Please login with your new account.');
+        
+        // Reset forms and switch to login mode
+        setTimeout(() => {
+          this.resetForms();
+          this.isLoginMode = true;
+          this.successMessage = '';
+        }, 2000);
+      },
+      error: (error) => {
+        console.error('Registration failed:', error);
+        this.isLoading = false;
+        
+        if (error.error && error.error.data && error.error.data.message) {
+          this.errorMessage = error.error.data.message;
+        } else if (error.error && error.error.message) {
+          this.errorMessage = error.error.message;
+        } else if (error.message) {
+          this.errorMessage = error.message;
+        } else {
+          this.errorMessage = 'Registration failed. Please try again.';
+        }
+      }
+    });
+  }
+
   onConnect() {
     this.showSuccessModal = false;
     this.showAutodeskLoading = true;
@@ -267,5 +351,21 @@ export class LoginComponent implements OnInit, OnDestroy {
         this.errorMessage = 'Unable to check authentication status. Please try again.';
       }
     });
+  }
+
+  downloadUserGuide() {
+    // Create a link element to trigger the download
+    const link = document.createElement('a');
+    link.href = 'assets/pdf/design-qc-user-guide.pdf';
+    link.download = 'Design-QC-User-Guide.pdf';
+    link.target = '_blank';
+    
+    // Append to body, click, and remove
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Show success message
+    this.toastService.showSuccess('User Guide download started!');
   }
 } 

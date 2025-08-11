@@ -6,6 +6,7 @@ export const environment = {
   apiBaseUrl: baseUrl,
   authEndpoints: {
     login: `${baseUrl}/auth/login`,
+    register: `${baseUrl}/auth/register`,
     checkAccStatus: `${baseUrl}/api/acc-auth/check-acc-status`
   },
   accAuthEndpoints: {

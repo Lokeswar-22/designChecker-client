@@ -12,6 +12,7 @@ declare const Autodesk: any;
 export class ViewerService {
     private ifcGuidToDbIdMap = new Map<string, number[]>();
     private revitIdToDbIdMap = new Map<string, number>();
+    private processedRevitIds: string[] = [];
 
     _3dviewer: any;
     viewerState:any;
@@ -76,6 +77,14 @@ export class ViewerService {
                             self.offset = model.getData().globalOffset;         
                             console.log('Global Offset:', self.offset);
                             await self._3dviewer.loadExtension('Autodesk.DocumentBrowser');
+                            self._3dviewer.loadExtension('Autodesk.DataVisualization')
+  .then(() => {
+    console.log('✅ DataVisualization extension loaded successfully');
+  })
+  .catch((err: any) => {
+    console.error('❌ Failed to load DataVisualization extension', err);
+  });
+
                             // await self.buildIfcGuidMap();                              
                             resolve(self._3dviewer);
                         });
@@ -149,6 +158,13 @@ export class ViewerService {
       
 
       async processModel(revitElementId: string) {
+        // Console log the Revit Element ID being processed
+        console.log('Processing Revit Element ID:', revitElementId);
+        
+        // Add to processed Revit IDs array
+        this.processedRevitIds.push(revitElementId);
+        console.log('All Revit Element IDs processed so far:', this.processedRevitIds);
+        
         const dbId = this.mapRevitIdToDbIdFast(revitElementId);
         if (dbId == null) {
           console.warn(`No dbId found for Revit Element ID: ${revitElementId}`);
@@ -212,6 +228,165 @@ export class ViewerService {
             
       
       }
+
+      // Method to clear processed Revit IDs array (call this before starting a new rule execution)
+      clearProcessedRevitIds(): void {
+        this.processedRevitIds = [];
+        console.log('Cleared processed Revit IDs array');
+      }
+
+      // Method to get all processed Revit IDs
+      getProcessedRevitIds(): string[] {
+        console.log("processedRevitIds", this.processedRevitIds)
+        return [...this.processedRevitIds];
+      }
+
+      // Method to clear sprite visualization and theming
+      clearSpriteVisualization(): void {
+        if (this._3dviewer) {
+          // Clear theming colors
+          this._3dviewer.clearThemingColors(this._3dviewer.model);
+          
+          // Clear isolation
+          this._3dviewer.isolate([]);
+          
+          // Clear Data Visualization extension viewables if available
+          const dataVizExt = this._3dviewer.getExtension('Autodesk.DataVisualization');
+          if (dataVizExt && dataVizExt.viewableData) {
+            dataVizExt.removeAllViewables();
+            dataVizExt.invalidateViewables();
+          }
+          
+          console.log('Cleared sprite visualization and theming');
+        }
+      }
+
+      highlightElement(revitElementId: string) {
+        const dbId = this.mapRevitIdToDbIdFast(revitElementId);
+        if (dbId == null) {
+          console.warn(`No dbId found for Revit Element ID: ${revitElementId}`);
+          return;
+        }
+        this._3dviewer.highlight(dbId);
+      }
+
+      async highlightFailedElements() {
+        const dbIds = this.processedRevitIds
+          .map(id => this.mapRevitIdToDbIdFast(id))
+          .filter((id): id is number => id !== null && id !== undefined);
+      
+        const viewer = this._3dviewer;
+        const model = viewer.model;
+      
+        // 1. Ensure Data Visualization Extension is loaded
+        const dataVizExt = await viewer.loadExtension('Autodesk.DataVisualization');
+        const DataVizCore = Autodesk?.DataVisualization?.Core;
+        if (!DataVizCore) {
+          console.error('Autodesk.DataVisualization.Core is not available.');
+          return;
+        }
+      
+        // 2. Isolate and apply red theming
+        viewer.clearThemingColors(model);
+        viewer.isolate(dbIds);
+        dbIds.forEach(id => viewer.setThemingColor(id, new THREE.Vector4(1, 0, 0, 1)));
+      
+        // 3. Define glow image sequence
+        const baseURL = 'assets/red-glow-frames/';
+        const glowIcons = ['glow-0.png', 'glow-1.png', 'glow-2.png', 'glow-3.png', 'glow-4.png'];
+        const fullPaths = glowIcons.map(icon => `${baseURL}${icon}`);
+      
+        // 4. Define animated style
+        const spriteStyle = new DataVizCore.ViewableStyle(
+          DataVizCore.ViewableType.SPRITE,
+          new THREE.Color(1, 0, 0),         // base color: red
+          fullPaths[0],                     // default image
+          new THREE.Color(1, 1, 1),         // highlight color: white (optional)
+          fullPaths[0],                     // highlighted image
+          fullPaths                         // animation sequence
+        );
+      
+        // 5. Prepare viewable data
+        const viewableData = new DataVizCore.ViewableData();
+        viewableData.spriteSize = 200; // large red sprite
+      
+        const instanceTree = model.getInstanceTree();
+        const fragList = model.getFragmentList();
+      
+        for (const dbId of dbIds) {
+          const bbox = new THREE.Box3();
+          instanceTree.enumNodeFragments(dbId, (fragId: number) => {
+            const fragBBox = new THREE.Box3();
+            fragList.getWorldBounds(fragId, fragBBox);
+            bbox.union(fragBBox);
+          });
+      
+          const center = new THREE.Vector3();
+          bbox.getCenter(center);
+      
+          const sprite = new DataVizCore.SpriteViewable(center, spriteStyle, dbId.toString());
+          viewableData.addViewable(sprite);
+        }
+      
+        await viewableData.finish();
+        dataVizExt.addViewables(viewableData);
+      
+        // 6. Start animation with pulsing scale + icon frame update
+        this.animateGlowingSprites(dataVizExt, baseURL, glowIcons);
+      }
+      
+      private animateGlowingSprites(dataVizExt: any, baseURL: string, glowIcons: string[]) {
+        let iconFrame = 0;
+        let scale = 1.0;
+        let grow = true;
+      
+        const spriteIds = dataVizExt.viewableData.viewables.map((v: any) => v.dbId);
+      
+        setInterval(() => {
+          // Pulse effect
+          scale = grow ? scale + 0.1 : scale - 0.1;
+          if (scale >= 2.0) grow = false;
+          if (scale <= 1.0) grow = true;
+      
+          dataVizExt.invalidateViewables(spriteIds, () => ({
+            url: `${baseURL}${glowIcons[iconFrame % glowIcons.length]}`,
+            scale: scale
+          }));
+      
+          iconFrame++;
+        }, 150); // every 150ms
+      }
+
+      clearFailedElementsVisuals() {
+        const viewer = this._3dviewer;
+      
+        if (!viewer) {
+          console.log('Viewer not available for clearing visuals');
+          return;
+        }
+      
+        // 1. Clear theming colors
+        viewer.clearThemingColors(viewer.model);
+      
+        // 2. Show all hidden elements
+        viewer.showAll();
+      
+        // 3. Remove isolation
+        viewer.isolate([]);
+      
+        // 4. Remove all Data Visualization sprites
+        const dataVizExt = viewer.getExtension('Autodesk.DataVisualization');
+        if (dataVizExt && dataVizExt.viewableData) {
+          dataVizExt.removeAllViewables();
+        }
+      
+        // 5. Optionally remove the extension completely (not required unless you want to reload later)
+        // viewer.unloadExtension('Autodesk.DataVisualization');
+      
+        console.log('✅ Viewer visuals reset to normal.');
+      }
+      
+      
 
 //       async logAllElementProperties(): Promise<void> {
 //   const model = this._3dviewer.model;

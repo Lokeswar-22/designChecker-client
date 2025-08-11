@@ -6,6 +6,19 @@ import { ViewerService } from '../../services/viewer.service';
 import { ActivatedRoute } from '@angular/router';
 import { ToastService } from '../../services/toast.service';
 
+interface RuleInfo {
+  title: string;
+  description: string;
+  executionInfo: string;
+  category: string;
+  thresholds: {
+    minimum: number | string | { clearWidth: number; transferZone: { width: number; depth: number; } } | null;
+    maximum: number | string | null;
+    unit: string | null;
+    requirement: string | null;
+  };
+}
+
 @Component({
   selector: 'app-rule-modal',
   standalone: true,
@@ -26,6 +39,26 @@ export class RuleModalComponent implements OnInit {
   ruleData: RuleCheckResponse | null = null;
   error: string = '';
   urn: string = '';
+  
+  // New acknowledgement state
+  showAcknowledgement = true;
+  
+  // Highlight state for CDPD button
+  highlight = false;
+  
+  // Rule information for acknowledgement popup
+  ruleInfo: RuleInfo = {
+    title: '',
+    description: '',
+    executionInfo: '',
+    category: '',
+    thresholds: {
+      minimum: null,
+      maximum: null,
+      unit: null,
+      requirement: null
+    }
+  };
 
   constructor(private ruleService: RuleService,
     private localService: LocalService,
@@ -35,6 +68,8 @@ export class RuleModalComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.setupRuleInfo();
+    
     const projectName = this.localService.getProjectName();
     
     if (projectName && this.accUserId) {
@@ -44,20 +79,12 @@ export class RuleModalComponent implements OnInit {
           this.projectId = response.projectId.split('.')[1];
           console.log("PROJECT ID",this.projectId)
           
-          // Now that projectId is available, check the rule if modal is visible
-          if (this.isVisible && this.elementGroupId && this.accUserId) {
-            this.checkRule();
-          }
+          // Don't auto-check rule, wait for user acknowledgement
         },
         error: (error) => {
           console.error('Error calling project by ID API:', error);
         }
       });
-    } else {
-      // If no project name or accUserId, still try to check rule (for testing)
-      if (this.isVisible && this.elementGroupId && this.accUserId) {
-        this.checkRule();
-      }
     }
     
     this.route.queryParams.subscribe(queryParams => {
@@ -76,16 +103,130 @@ export class RuleModalComponent implements OnInit {
   }
 
   ngOnChanges() {
-    // Only check rule if we have all required data and projectId is available
-    if (this.isVisible && this.elementGroupId && this.accUserId && this.projectId) {
-      this.checkRule();
+    // Reset to acknowledgement state when modal becomes visible
+    if (this.isVisible) {
+      this.showAcknowledgement = true;
+      this.loading = false;
+      this.error = '';
+      this.ruleData = null;
+      this.highlight = false; // Reset highlight state
+      this.setupRuleInfo(); // Update rule info when ruleType changes
+      
+      // Clear any existing failed elements visuals when modal opens
+      this.viewerService.clearFailedElementsVisuals();
+      this.viewerService.clearProcessedRevitIds();
     }
+  }
+
+  setupRuleInfo() {
+    switch (this.ruleType) {
+      case 'rule1':
+        this.ruleInfo = {
+          title: 'Rule 1 - Door Clear Opening Check',
+          description: 'Ensures accessible doors meet the minimum clear opening width required for wheelchair accessibility.',
+          executionInfo: 'Fetches all door elements from AEC Data Model (category = Doors). Checks width using properties like Door Opening Width, Clear Opening Width, Width, MF Opening Width, Rough Width, Panel Width. Compares against the threshold.',
+          category: 'Doors',
+          thresholds: {
+            minimum: 850,
+            maximum: null,
+            unit: 'mm',
+            requirement: 'Clear opening width must be at least 850 mm'
+          }
+        };
+        break;
+      case 'rule2':
+        this.ruleInfo = {
+          title: 'Rule 2 - Ramp Landing Check',
+          description: 'Validates that ramps have level landings at the top, bottom, and changes in direction, ensuring accessibility and safety.',
+          executionInfo: 'Fetches ramp elements (category = Ramps). Uses Base Offset and Top Offset properties to verify that landings are level. Flags ramps with missing or inconsistent landing data.',
+          category: 'Ramps',
+          thresholds: {
+            minimum: 0,
+            maximum: 0,
+            unit: 'mm (level difference)',
+            requirement: 'Landings must be level at top and bottom of each ramp run'
+          }
+        };
+        break;
+      case 'rule3':
+        this.ruleInfo = {
+          title: 'Rule 3 - Ramp Gradient Check',
+          description: 'Ensures ramps comply with slope regulations for accessibility. The gradient must meet requirements in Table 4 of the BCA Code.',
+          executionInfo: 'Fetches ramp elements (category = Ramps). Uses Ramp Max Slope (1/x) property to check compliance. Compares slope against Table 4 permissible limits.',
+          category: 'Ramps',
+          thresholds: {
+            minimum: null,
+            maximum: '1/x (per BCA Table 4)',
+            unit: 'gradient ratio',
+            requirement: 'Ramp slope must comply with BCA Table 4 and be consistent between landings'
+          }
+        };
+        break;
+      case 'rule4':
+        this.ruleInfo = {
+          title: 'Rule 4 - Stair Handrail Height Check',
+          description: 'Ensures staircases with 5 or more risers have handrails positioned within the accessible height range.',
+          executionInfo: 'Fetches stair elements (category = Stairs). Uses Actual Number of Risers, Riser Height, and Tread Depth to confirm rule applicability. Attempts to validate Handrail Height (mm). If missing, flags Fail with context.',
+          category: 'Stairs',
+          thresholds: {
+            minimum: 800,
+            maximum: 1000,
+            unit: 'mm',
+            requirement: 'Handrail height must be between 800 mm and 1000 mm, measured vertically from the pitch line'
+          }
+        };
+        break;
+      case 'rule5':
+        this.ruleInfo = {
+          title: 'Rule 5 - Accessible Washroom Dimension Check',
+          description: 'Validates that accessible washrooms have sufficient clear dimensions and transfer space for wheelchair use.',
+          executionInfo: 'Fetches wall elements (category = Walls) as proxy due to missing washroom elements. Uses Width property with heuristic scaling to infer clear dimension. Checks compliance with minimum width requirement and flags missing transfer zone data.',
+          category: 'Sanitary Provision',
+          thresholds: {
+            minimum: { clearWidth: 1750, transferZone: { width: 900, depth: 1500 } },
+            maximum: null,
+            unit: 'mm',
+            requirement: 'Clear width ≥ 1750 mm and adjacent transfer space ≥ 900 mm x 1500 mm'
+          }
+        };
+        break;
+      default:
+        this.ruleInfo = {
+          title: 'Rule Check',
+          description: 'This rule performs compliance checking on building elements.',
+          executionInfo: 'The system will analyze elements and create ACC issues for non-compliant items.',
+          category: 'General',
+          thresholds: {
+            minimum: null,
+            maximum: null,
+            unit: null,
+            requirement: 'Generic compliance check'
+          }
+        };
+    }
+  }
+  
+
+  onContinue() {
+    console.log('Continue button clicked!');
+    this.showAcknowledgement = false;
+    this.checkRule();
+  }
+
+  onCancel() {
+    console.log('Cancel button clicked!');
+    this.onClose();
   }
 
   checkRule() {
     this.loading = true;
     this.error = '';
     this.ruleData = null;
+    this.highlight = false; // Reset highlight state
+
+    // Clear failed elements visuals and processed Revit IDs before starting new rule execution
+    this.viewerService.clearFailedElementsVisuals();
+    this.viewerService.clearProcessedRevitIds();
 
     if (this.ruleType === 'rule1') {
       this.checkRule1();
@@ -241,7 +382,17 @@ export class RuleModalComponent implements OnInit {
   
 
   onClose() {
+    // Clear failed elements visuals and processed Revit IDs when modal is closed
+    this.viewerService.clearFailedElementsVisuals();
+    this.viewerService.clearProcessedRevitIds();
+    this.highlight = false; // Reset highlight state
     this.close.emit();
+  }
+
+  async onCdpdClick() {
+    console.log('returned to viewer');
+    this.viewerService.highlightFailedElements();
+    this.onClose();
   }
 
   onBackdropClick(event: Event) {
@@ -294,6 +445,7 @@ export class RuleModalComponent implements OnInit {
 
   async getFailedElements(): Promise<Array<{ revitElementId: string, ifcGUID: string | null }>> {
     console.log('getFailedElements called for ruleType:', this.ruleType);
+    
     const results = this.getResults();
     console.log('Results from getResults():', results);
   
@@ -306,6 +458,8 @@ export class RuleModalComponent implements OnInit {
   
     console.log('Failed element count:', failedElements.length);
     console.log('Failed elements:', failedElements);
+    
+    // Set highlight to true if there are failed elements to highlight
   
     let successfulIssues = 0;
     let processedIssues = 0;
@@ -313,13 +467,20 @@ export class RuleModalComponent implements OnInit {
   
     const showToastIfComplete = () => {
       processedIssues++;
-      if (processedIssues === totalIssues && successfulIssues > 0) {
-        const message = successfulIssues === 1 
-          ? '1 issue created in ACC' 
-          : `${successfulIssues} issues created in ACC`;
-        this.toastService.showSuccess(message);
+      
+      if (processedIssues === totalIssues) {
+        if (successfulIssues > 0) {
+          const message = successfulIssues === 1 
+            ? '1 issue created in ACC' 
+            : `${successfulIssues} issues created in ACC`;
+          this.toastService.showSuccess(message);
+        }
+    
+        // ✅ Only set highlight once all issues are processed
+        this.highlight = true;
       }
     };
+    
   
     for (const element of failedElements) {
       const revitId = element.revitElementId;

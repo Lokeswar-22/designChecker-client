@@ -41,6 +41,10 @@
   --status-rejected: #da292e;            /* Rejected/Declined - Red */
   --status-closed: #2fb380;              /* Closed/Released - Green */
 
+  /* 🚨 Error and Success Colors */
+  --error-color: #da292e;               /* Red - Error messages */
+  --success-color: #2fb380;             /* Green - Success messages */
+
   /* 🔧 Component-Specific Colors */
   /* Button Colors */
   --bs-btn-color: #222221;           /* Text color */

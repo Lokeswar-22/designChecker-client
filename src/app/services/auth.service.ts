@@ -13,6 +13,13 @@ export interface LoginRequest {
   rememberMe?: boolean;
 }
 
+export interface RegisterRequest {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+}
+
 export interface LoginResponse {
   accessToken?: string;
   refreshToken?: string;
@@ -111,6 +118,18 @@ export class AuthService {
         }),
         catchError(error => {
           console.error('Login error:', error);
+          return throwError(() => error);
+        })
+      );
+  }
+
+  register(credentials: RegisterRequest): Observable<any> {
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+    
+    return this.http.post(environment.authEndpoints.register, credentials, { headers })
+      .pipe(
+        catchError(error => {
+          console.error('Registration error:', error);
           return throwError(() => error);
         })
       );
