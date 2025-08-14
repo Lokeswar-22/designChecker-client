@@ -160,4 +160,14 @@ export class RuleService {
   createIssue(projectId: string, accUserId: string, issueData: any): Observable<any> {
     return this.http.post(`${this.baseUrl}/hubs/projects/${projectId}/issues?accUserId=${accUserId}`, issueData);
   }
+
+  isRuleResultEmpty(response: RuleCheckResponse): boolean {
+    if (response.results && response.results.length > 0) {
+      return false;
+    }
+    if (response.result && response.result.results && response.result.results.length > 0) {
+      return false;
+    }
+    return true;
+  }
 } 

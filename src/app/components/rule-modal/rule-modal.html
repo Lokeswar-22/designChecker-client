@@ -116,8 +116,25 @@
 
         <!-- Results State -->
         <div *ngIf="!loading && !error && ruleData" class="results-state">
+          <!-- Empty Results State -->
+          <div *ngIf="hasEmptyResults()" class="empty-results-state">
+            <div class="empty-results-card">
+              <i class="fas fa-info-circle"></i>
+              <h3>No Elements to Validate</h3>
+              <p>{{ getEmptyResultsMessage() }}</p>
+              <div class="empty-results-info">
+                <p>This may happen when:</p>
+                <ul>
+                  <li>The selected element group doesn't contain any {{ ruleInfo.category.toLowerCase() }} elements</li>
+                  <li>The elements are not properly categorized in the model</li>
+                  <li>The element group selection is empty</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
           <!-- Summary Section -->
-          <div class="summary-section">
+          <div *ngIf="!hasEmptyResults()" class="summary-section">
             <div class="summary-card">
               <div class="summary-item">
                 <span class="summary-label">Total Elements</span>
@@ -151,7 +168,7 @@
           </div>
 
           <!-- Results List -->
-          <div class="results-section">
+          <div *ngIf="!hasEmptyResults()" class="results-section">
             <h3>Detailed Results</h3>
             <div class="results-list">
               <div 
@@ -184,12 +201,13 @@
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      <div class="modal-footer">
-        <button *ngIf="highlight" class="cdpd-button" (click)="onCdpdClick()">Highlight the Failed Elements in viewer</button>
-        <button class="close-modal-button" (click)="onClose()">Close</button>
+          <!-- Modal Footer - Always visible when there are results -->
+          <div class="modal-footer">
+            <button *ngIf="highlight" class="cdpd-button" (click)="onCdpdClick()">Highlight the Failed Elements in viewer</button>
+            <button class="close-modal-button" (click)="onClose()">Close</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>

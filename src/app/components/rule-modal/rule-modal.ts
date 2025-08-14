@@ -248,6 +248,11 @@ export class RuleModalComponent implements OnInit {
         this.ruleData = response;
         this.loading = false;
         
+        // Log empty results check
+        if (this.hasEmptyResults()) {
+          console.log('Rule 1: No elements found to validate');
+        }
+        
         // Process failed elements after rule check is complete
         await this.getFailedElements();
     },
@@ -272,6 +277,11 @@ export class RuleModalComponent implements OnInit {
         console.log('Rule 2 check response:', response);
         this.ruleData = response;
         this.loading = false;
+        
+        // Log empty results check
+        if (this.hasEmptyResults()) {
+          console.log('Rule 2: No elements found to validate');
+        }
         
         console.log('About to call getFailedElements for Rule 2');
         console.log('URN before getFailedElements:', this.urn);
@@ -303,6 +313,11 @@ export class RuleModalComponent implements OnInit {
         this.ruleData = response;
         this.loading = false;
         
+        // Log empty results check
+        if (this.hasEmptyResults()) {
+          console.log('Rule 3: No elements found to validate');
+        }
+        
         console.log('About to call getFailedElements for Rule 3');
         console.log('URN before getFailedElements:', this.urn);
         console.log('ProjectId before getFailedElements:', this.projectId);
@@ -333,6 +348,11 @@ export class RuleModalComponent implements OnInit {
         this.ruleData = response;
         this.loading = false;
         
+        // Log empty results check
+        if (this.hasEmptyResults()) {
+          console.log('Rule 4: No elements found to validate');
+        }
+        
         console.log('About to call getFailedElements for Rule 4');
         console.log('URN before getFailedElements:', this.urn);
         console.log('ProjectId before getFailedElements:', this.projectId);
@@ -362,6 +382,11 @@ export class RuleModalComponent implements OnInit {
         console.log('Rule 5 check response:', response);
         this.ruleData = response;
         this.loading = false;
+        
+        // Log empty results check
+        if (this.hasEmptyResults()) {
+          console.log('Rule 5: No elements found to validate');
+        }
         
         console.log('About to call getFailedElements for Rule 5');
         console.log('URN before getFailedElements:', this.urn);
@@ -443,11 +468,27 @@ export class RuleModalComponent implements OnInit {
     }
   }
 
+  hasEmptyResults(): boolean {
+    const results = this.getResults();
+    const serviceCheck = this.ruleService.isRuleResultEmpty(this.ruleData!);
+    return results.length === 0 || serviceCheck;
+  }
+
+  getEmptyResultsMessage(): string {
+    return `No ${this.ruleInfo.category.toLowerCase()} elements found in the selected group to validate this rule.`;
+  }
+
   async getFailedElements(): Promise<Array<{ revitElementId: string, ifcGUID: string | null }>> {
     console.log('getFailedElements called for ruleType:', this.ruleType);
     
     const results = this.getResults();
     console.log('Results from getResults():', results);
+  
+    // If no results, return empty array early
+    if (results.length === 0) {
+      console.log('No results found, returning empty array');
+      return [];
+    }
   
     const failedElements = results
       .filter(result => !result.passed)
