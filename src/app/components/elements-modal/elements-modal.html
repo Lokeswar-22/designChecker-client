@@ -21,9 +21,11 @@
 
       <div class="elements-container" *ngIf="!loading && !error">
         <div class="elements-header">
-          <h3>Found {{ elements.length }} elements</h3>
+          <h3>Found {{ isRule1Applied ? filteredElements.length : elements.length }} elements{{ isRule1Applied ? ' (Rule 1 Applied)' : '' }}</h3>
           <div class="view-toggle">
             <button class="toggle-btn" [class.active]="viewMode === 'table'" (click)="setViewMode('table')">Table View</button>
+            <button class="toggle-btn highlight-btn" (click)="onHighlightClick()">Highlight</button>
+            <button class="toggle-btn rule1-btn" *ngIf="categoryName === 'Doors'" (click)="onRule1Click()">Rule 1</button>
             <!-- <button class="toggle-btn" [class.active]="viewMode === 'cards'" (click)="setViewMode('cards')">Card View</button>
             <button class="toggle-btn" [class.active]="viewMode === 'json'" (click)="setViewMode('json')">JSON View</button> -->
           </div>
@@ -40,7 +42,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let element of elements" class="element-row">
+              <tr *ngFor="let element of (isRule1Applied ? filteredElements : elements)" class="element-row">
                 <td class="element-id">{{ element.id || 'N/A' }}</td>
                 <td class="element-name">{{ element.name || 'N/A' }}</td>
                 <td *ngFor="let propName of getCommonPropertyNames()" class="element-property">
@@ -58,7 +60,7 @@
 
         <!-- Card View -->
         <div class="elements-cards-container" *ngIf="viewMode === 'cards'">
-          <div class="element-card" *ngFor="let element of elements">
+          <div class="element-card" *ngFor="let element of (isRule1Applied ? filteredElements : elements)">
             <div class="card-header">
               <h4 class="element-title">{{ element.name || 'Unnamed Element' }}</h4>
               <span class="element-id-badge">{{ element.id || 'N/A' }}</span>
@@ -79,7 +81,7 @@
 
         <!-- JSON View -->
         <div class="elements-json-container" *ngIf="viewMode === 'json'">
-          <pre class="json-display">{{ elements | json }}</pre>
+          <pre class="json-display">{{ (isRule1Applied ? filteredElements : elements) | json }}</pre>
         </div>
 
         <div class="no-elements" *ngIf="elements.length === 0">

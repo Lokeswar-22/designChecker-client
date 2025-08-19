@@ -5,6 +5,8 @@ import { LocalService } from '../../services/local.service';
 import { ViewerService } from '../../services/viewer.service';
 import { ActivatedRoute } from '@angular/router';
 import { ToastService } from '../../services/toast.service';
+import { firstValueFrom } from 'rxjs';
+
 
 interface RuleInfo {
   title: string;
@@ -17,6 +19,37 @@ interface RuleInfo {
     unit: string | null;
     requirement: string | null;
   };
+}
+
+// New interfaces for the validation results data structure
+interface ValidationResult {
+  typeId: string;
+  typeName: string;
+  familyName: string;
+  widthMm: number;
+  isValid: boolean;
+  elementIds: string[];
+}
+
+interface ValidationSummary {
+  totalTypesChecked: number;
+  failedValidations: number;
+  failedWithElementIds: number;
+  failedWithoutElementIds: number;
+  totalFailedElementInstances: number;
+  uniqueElementIds: number;
+  duplicateElementIds: number;
+  perfectMatchesFound: number;
+}
+
+interface FailureBreakdown {
+  [key: string]: number;
+}
+
+interface ValidationResponse {
+  validationResults: ValidationResult[];
+  summary: ValidationSummary;
+  failureBreakdown: FailureBreakdown;
 }
 
 @Component({
@@ -37,6 +70,7 @@ export class RuleModalComponent implements OnInit {
 
   loading = false;
   ruleData: RuleCheckResponse | null = null;
+  validationData: ValidationResponse | null = null; // New property for validation data
   error: string = '';
   urn: string = '';
   
@@ -103,12 +137,16 @@ export class RuleModalComponent implements OnInit {
   }
 
   ngOnChanges() {
+    console.log('ngOnChanges called - isVisible:', this.isVisible);
+    
     // Reset to acknowledgement state when modal becomes visible
     if (this.isVisible) {
+      console.log('Modal is visible, resetting state');
       this.showAcknowledgement = true;
       this.loading = false;
       this.error = '';
       this.ruleData = null;
+      this.validationData = null; // Reset validation data
       this.highlight = false; // Reset highlight state
       this.setupRuleInfo(); // Update rule info when ruleType changes
       
@@ -122,15 +160,15 @@ export class RuleModalComponent implements OnInit {
     switch (this.ruleType) {
       case 'rule1':
         this.ruleInfo = {
-          title: 'Rule 1 - Door Clear Opening Check',
-          description: 'Ensures accessible doors meet the minimum clear opening width required for wheelchair accessibility.',
-          executionInfo: 'Fetches all door elements from AEC Data Model (category = Doors). Checks width using properties like Door Opening Width, Clear Opening Width, Width, MF Opening Width, Rough Width, Panel Width. Compares against the threshold.',
+          title: 'Rule 1 - Door Type Validation Check',
+          description: 'Validates door types and families against accessibility requirements, ensuring proper categorization and compliance.',
+          executionInfo: 'Analyzes all door elements from the AEC Data Model, categorizing them by type and family. Validates door dimensions and creates ACC issues for non-compliant elements.',
           category: 'Doors',
           thresholds: {
-            minimum: 850,
+            minimum: 'Compliance with accessibility standards',
             maximum: null,
-            unit: 'mm',
-            requirement: 'Clear opening width must be at least 850 mm'
+            unit: 'Validation',
+            requirement: 'Door types must meet accessibility requirements and be properly categorized'
           }
         };
         break;
@@ -246,6 +284,34 @@ export class RuleModalComponent implements OnInit {
       next: async (response: RuleCheckResponse) => {
         console.log('Rule 1 check response:', response);
         this.ruleData = response;
+        
+        // Handle the new validation data structure
+        if (response && response.validationResults) {
+          try {
+            console.log('Processing validation data structure:', response);
+            this.validationData = {
+              validationResults: response.validationResults,
+              summary: response.summary as any, // Type assertion for the summary
+              failureBreakdown: response.failureBreakdown
+            };
+            
+            console.log('Set validationData:', this.validationData);
+            console.log('Validation results count:', this.validationData.validationResults?.length);
+            console.log('hasEmptyResults result:', this.hasEmptyResults());
+            
+            // Validate the data structure
+            if (!this.validationData.validationResults || !this.validationData.summary) {
+              console.warn('Validation data structure is incomplete, falling back to legacy format');
+              this.validationData = null;
+            }
+          } catch (error) {
+            console.error('Error parsing validation data:', error);
+            this.validationData = null;
+          }
+        } else {
+          console.log('No validationResults found in response, using legacy format');
+        }
+        
         this.loading = false;
         
         // Log empty results check
@@ -255,6 +321,13 @@ export class RuleModalComponent implements OnInit {
         
         // Process failed elements after rule check is complete
         await this.getFailedElements();
+        
+        console.log('Rule check completed. Final state:');
+        console.log('- validationData:', this.validationData);
+        console.log('- hasEmptyResults():', this.hasEmptyResults());
+        console.log('- getTotalCount():', this.getTotalCount());
+        console.log('- getPassedCount():', this.getPassedCount());
+        console.log('- getFailedCount():', this.getFailedCount());
     },
     error: (error: any) => {
       console.error('Error checking rule 1:', error);
@@ -272,31 +345,31 @@ export class RuleModalComponent implements OnInit {
       urn: this.urn
     });
     
-    this.ruleService.checkRule2(this.elementGroupId, this.accUserId, this.projectId!).subscribe({
-      next: async (response: RuleCheckResponse) => {
-        console.log('Rule 2 check response:', response);
-        this.ruleData = response;
-        this.loading = false;
+  //   this.ruleService.checkRule2(this.elementGroupId, this.accUserId, this.projectId!).subscribe({
+  //     next: async (response: RuleCheckResponse) => {
+  //       console.log('Rule 2 check response:', response);
+  //       this.ruleData = response;
+  //       this.loading = false;
         
-        // Log empty results check
-        if (this.hasEmptyResults()) {
-          console.log('Rule 2: No elements found to validate');
-        }
+  //       // Log empty results check
+  //       if (this.hasEmptyResults()) {
+  //         console.log('Rule 2: No elements found to validate');
+  //       }
         
-        console.log('About to call getFailedElements for Rule 2');
-        console.log('URN before getFailedElements:', this.urn);
-        console.log('ProjectId before getFailedElements:', this.projectId);
+  //       console.log('About to call getFailedElements for Rule 2');
+  //       console.log('URN before getFailedElements:', this.urn);
+  //       console.log('ProjectId before getFailedElements:', this.projectId);
         
-        // Process failed elements after rule check is complete
-        await this.getFailedElements();
-        console.log('getFailedElements completed for Rule 2');
-    },
-    error: (error: any) => {
-      console.error('Error checking rule 2:', error);
-      this.error = 'Failed to check rule 2. Please try again.';
-      this.loading = false;
-    }
-  });
+  //       // Process failed elements after rule check is complete
+  //       await this.getFailedElements();
+  //       console.log('getFailedElements completed for Rule 2');
+  //   },
+  //   error: (error: any) => {
+  //     console.error('Error checking rule 2:', error);
+  //     this.error = 'Failed to check rule 2. Please try again.';
+  //     this.loading = false;
+  //   }
+  // });
   }
 
   checkRule3() {
@@ -307,31 +380,31 @@ export class RuleModalComponent implements OnInit {
       urn: this.urn
     });
     
-    this.ruleService.checkRule3(this.elementGroupId, this.accUserId, this.projectId!).subscribe({
-      next: async (response: RuleCheckResponse) => {
-        console.log('Rule 3 check response:', response);
-        this.ruleData = response;
-        this.loading = false;
+  //   this.ruleService.checkRule3(this.elementGroupId, this.accUserId, this.projectId!).subscribe({
+  //     next: async (response: RuleCheckResponse) => {
+  //       console.log('Rule 3 check response:', response);
+  //       this.ruleData = response;
+  //       this.loading = false;
         
-        // Log empty results check
-        if (this.hasEmptyResults()) {
-          console.log('Rule 3: No elements found to validate');
-        }
+  //       // Log empty results check
+  //       if (this.hasEmptyResults()) {
+  //         console.log('Rule 3: No elements found to validate');
+  //       }
         
-        console.log('About to call getFailedElements for Rule 3');
-        console.log('URN before getFailedElements:', this.urn);
-        console.log('ProjectId before getFailedElements:', this.projectId);
+  //       console.log('About to call getFailedElements for Rule 3');
+  //       console.log('URN before getFailedElements:', this.urn);
+  //       console.log('ProjectId before getFailedElements:', this.projectId);
         
-        // Process failed elements after rule check is complete
-        await this.getFailedElements();
-        console.log('getFailedElements completed for Rule 3');
-    },
-    error: (error: any) => {
-      console.error('Error checking rule 3:', error);
-      this.error = 'Failed to check rule 3. Please try again.';
-      this.loading = false;
-    }
-  });
+  //       // Process failed elements after rule check is complete
+  //       await this.getFailedElements();
+  //       console.log('getFailedElements completed for Rule 3');
+  //   },
+  //   error: (error: any) => {
+  //     console.error('Error checking rule 3:', error);
+  //     this.error = 'Failed to check rule 3. Please try again.';
+  //     this.loading = false;
+  //   }
+  // });
   }
 
   checkRule4() {
@@ -342,31 +415,31 @@ export class RuleModalComponent implements OnInit {
       urn: this.urn
     });
     
-    this.ruleService.checkRule4(this.elementGroupId, this.accUserId, this.projectId!).subscribe({
-      next: async (response: RuleCheckResponse) => {
-        console.log('Rule 4 check response:', response);
-        this.ruleData = response;
-        this.loading = false;
+  //   this.ruleService.checkRule4(this.elementGroupId, this.accUserId, this.projectId!).subscribe({
+  //     next: async (response: RuleCheckResponse) => {
+  //       console.log('Rule 4 check response:', response);
+  //       this.ruleData = response;
+  //       this.loading = false;
         
-        // Log empty results check
-        if (this.hasEmptyResults()) {
-          console.log('Rule 4: No elements found to validate');
-        }
+  //       // Log empty results check
+  //       if (this.hasEmptyResults()) {
+  //         console.log('Rule 4: No elements found to validate');
+  //       }
         
-        console.log('About to call getFailedElements for Rule 4');
-        console.log('URN before getFailedElements:', this.urn);
-        console.log('ProjectId before getFailedElements:', this.projectId);
+  //       console.log('About to call getFailedElements for Rule 4');
+  //       console.log('URN before getFailedElements:', this.urn);
+  //       console.log('ProjectId before getFailedElements:', this.projectId);
         
-        // Process failed elements after rule check is complete
-        await this.getFailedElements();
-        console.log('getFailedElements completed for Rule 4');
-    },
-    error: (error: any) => {
-      console.error('Error checking rule 4:', error);
-      this.error = 'Failed to check rule 4. Please try again.';
-      this.loading = false;
-    }
-  });
+  //       // Process failed elements after rule check is complete
+  //       await this.getFailedElements();
+  //       console.log('getFailedElements completed for Rule 4');
+  //   },
+  //   error: (error: any) => {
+  //     console.error('Error checking rule 4:', error);
+  //     this.error = 'Failed to check rule 4. Please try again.';
+  //     this.loading = false;
+  //   }
+  // });
   }
 
   checkRule5() {
@@ -377,31 +450,31 @@ export class RuleModalComponent implements OnInit {
       urn: this.urn
     });
     
-    this.ruleService.checkRule5(this.elementGroupId, this.accUserId, this.projectId!).subscribe({
-      next: async (response: RuleCheckResponse) => {
-        console.log('Rule 5 check response:', response);
-        this.ruleData = response;
-        this.loading = false;
+  //   this.ruleService.checkRule5(this.elementGroupId, this.accUserId, this.projectId!).subscribe({
+  //     next: async (response: RuleCheckResponse) => {
+  //       console.log('Rule 5 check response:', response);
+  //       this.ruleData = response;
+  //       this.loading = false;
         
-        // Log empty results check
-        if (this.hasEmptyResults()) {
-          console.log('Rule 5: No elements found to validate');
-        }
+  //       // Log empty results check
+  //       if (this.hasEmptyResults()) {
+  //         console.log('Rule 5: No elements found to validate');
+  //       }
         
-        console.log('About to call getFailedElements for Rule 5');
-        console.log('URN before getFailedElements:', this.urn);
-        console.log('ProjectId before getFailedElements:', this.projectId);
+  //       console.log('About to call getFailedElements for Rule 5');
+  //       console.log('URN before getFailedElements:', this.urn);
+  //       console.log('ProjectId before getFailedElements:', this.projectId);
         
-        // Process failed elements after rule check is complete
-        await this.getFailedElements();
-        console.log('getFailedElements completed for Rule 5');
-    },
-    error: (error: any) => {
-      console.error('Error checking rule 5:', error);
-      this.error = 'Failed to check rule 5. Please try again.';
-      this.loading = false;
-    }
-  });
+  //       // Process failed elements after rule check is complete
+  //       await this.getFailedElements();
+  //       console.log('getFailedElements completed for Rule 5');
+  //   },
+  //   error: (error: any) => {
+  //     console.error('Error checking rule 5:', error);
+  //     this.error = 'Failed to check rule 5. Please try again.';
+  //     this.loading = false;
+  //   }
+  // });
   }
 
   
@@ -427,26 +500,59 @@ export class RuleModalComponent implements OnInit {
   }
 
   getPassedCount(): number {
-    if (this.ruleType === 'rule1') {
-      return this.ruleData?.result?.summary?.totalPassed || 0;
+    console.log('getPassedCount called');
+    console.log('validationData exists:', !!this.validationData);
+    
+    if (this.validationData) {
+      const count = this.validationData.summary.totalTypesChecked - this.validationData.summary.failedValidations;
+      console.log('Validation data passed count:', count);
+      return count;
+    } else if (this.ruleType === 'rule1') {
+      const count = this.ruleData?.result?.summary?.totalPassed || 0;
+      console.log('Legacy rule1 passed count:', count);
+      return count;
     } else {
-      return this.ruleData?.summary?.totalPassed || 0;
+      const count = this.ruleData?.summary?.totalPassed || 0;
+      console.log('Legacy other rule passed count:', count);
+      return count;
     }
   }
 
   getFailedCount(): number {
-    if (this.ruleType === 'rule1') {
-      return this.ruleData?.result?.summary?.totalFailed || 0;
+    console.log('getFailedCount called');
+    console.log('validationData exists:', !!this.validationData);
+    
+    if (this.validationData) {
+      const count = this.validationData.summary.failedValidations;
+      console.log('Validation data failed count:', count);
+      return count;
+    } else if (this.ruleType === 'rule1') {
+      const count = this.ruleData?.result?.summary?.totalFailed || 0;
+      console.log('Legacy rule1 failed count:', count);
+      return count;
     } else {
-      return this.ruleData?.summary?.totalFailed || 0;
+      const count = this.ruleData?.summary?.totalFailed || 0;
+      console.log('Legacy other rule failed count:', count);
+      return count;
     }
   }
 
   getTotalCount(): number {
-    if (this.ruleType === 'rule1') {
-      return this.ruleData?.result?.summary?.totalElementsChecked || 0;
+    console.log('getTotalCount called');
+    console.log('validationData exists:', !!this.validationData);
+    
+    if (this.validationData) {
+      const count = this.validationData.summary?.totalTypesChecked || 0;
+      console.log('Validation data total count:', count);
+      return count;
+    } else if (this.ruleType === 'rule1') {
+      const count = this.ruleData?.result?.summary?.totalElementsChecked || 0;
+      console.log('Legacy rule1 total count:', count);
+      return count;
     } else {
-      return this.ruleData?.summary?.totalElementsChecked || 0;
+      const count = this.ruleData?.summary?.totalElementsChecked || 0;
+      console.log('Legacy other rule total count:', count);
+      return count;
     }
   }
 
@@ -461,41 +567,108 @@ export class RuleModalComponent implements OnInit {
   }
 
   getResults(): any[] {
-    if (this.ruleType === 'rule1') {
+    console.log('getResults called');
+    console.log('validationData exists:', !!this.validationData);
+    
+    if (this.validationData) {
+      console.log('Returning validation results:', this.validationData.validationResults);
+      return this.validationData.validationResults || [];
+    } else if (this.ruleType === 'rule1') {
+      console.log('Returning legacy rule1 results:', this.ruleData?.result?.results);
       return this.ruleData?.result?.results || [];
     } else {
+      console.log('Returning legacy other rule results:', this.ruleData?.results);
       return this.ruleData?.results || [];
     }
   }
 
+  getValidationResults(): ValidationResult[] {
+    console.log('getValidationResults called');
+    console.log('validationData:', this.validationData);
+    const results = this.validationData?.validationResults || [];
+    console.log('Returning validation results:', results);
+    return results;
+  }
+
+  getSummary(): ValidationSummary | null {
+    console.log('getSummary called');
+    console.log('validationData:', this.validationData);
+    const summary = this.validationData?.summary || null;
+    console.log('Returning summary:', summary);
+    return summary;
+  }
+
+  getFailureBreakdown(): FailureBreakdown | null {
+    console.log('getFailureBreakdown called');
+    console.log('validationData:', this.validationData);
+    const breakdown = this.validationData?.failureBreakdown || null;
+    console.log('Returning failure breakdown:', breakdown);
+    return breakdown;
+  }
+
+  isUsingValidationData(): boolean {
+    const result = this.validationData !== null;
+    console.log('isUsingValidationData called - result:', result);
+    console.log('validationData:', this.validationData);
+    return result;
+  }
+
   hasEmptyResults(): boolean {
+    console.log('hasEmptyResults called');
+    console.log('validationData:', this.validationData);
+    
+    if (this.validationData) {
+      // For validation data, check if we have validation results
+      const hasResults = this.validationData.validationResults && this.validationData.validationResults.length > 0;
+      console.log('Validation data check - hasResults:', hasResults);
+      console.log('Validation results:', this.validationData.validationResults);
+      console.log('Validation results length:', this.validationData.validationResults?.length);
+      return !hasResults;
+    }
+    
+    // For legacy rule data structure
+    console.log('Using legacy data structure check');
     const results = this.getResults();
     const serviceCheck = this.ruleService.isRuleResultEmpty(this.ruleData!);
-    return results.length === 0 || serviceCheck;
+    const isEmpty = results.length === 0 || serviceCheck;
+    console.log('Legacy check - results length:', results.length, 'serviceCheck:', serviceCheck, 'isEmpty:', isEmpty);
+    return isEmpty;
   }
 
   getEmptyResultsMessage(): string {
     return `No ${this.ruleInfo.category.toLowerCase()} elements found in the selected group to validate this rule.`;
   }
 
-  async getFailedElements(): Promise<Array<{ revitElementId: string, ifcGUID: string | null }>> {
+  async getFailedElements(): Promise<Array<{ revitElementId: string }>> {
     console.log('getFailedElements called for ruleType:', this.ruleType);
     
-    const results = this.getResults();
-    console.log('Results from getResults():', results);
-  
-    // If no results, return empty array early
-    if (results.length === 0) {
-      console.log('No results found, returning empty array');
-      return [];
+    let failedElements: Array<{ revitElementId: string }> = [];
+    
+    if (this.validationData) {
+      // Handle new validation data structure
+      const failedResults = this.validationData.validationResults.filter(result => !result.isValid);
+      failedElements = failedResults.flatMap(result => 
+        result.elementIds.map(elementId => ({
+          revitElementId: elementId
+        }))
+      );
+    } else {
+      // Handle legacy rule data structure
+      const results = this.getResults();
+      console.log('Results from getResults():', results);
+    
+      // If no results, return empty array early
+      if (results.length === 0) {
+        console.log('No results found, returning empty array');
+        return [];
+      }
+    
+      failedElements = results
+        .filter(result => !result.passed)
+        .map(result => ({
+          revitElementId: result.revitElementId
+        }));
     }
-  
-    const failedElements = results
-      .filter(result => !result.passed)
-      .map(result => ({
-        revitElementId: result.revitElementId,
-        ifcGUID: result.ifcGUID
-      }));
   
     console.log('Failed element count:', failedElements.length);
     console.log('Failed elements:', failedElements);
@@ -505,7 +678,11 @@ export class RuleModalComponent implements OnInit {
     let successfulIssues = 0;
     let processedIssues = 0;
     const totalIssues = failedElements.length;
-  
+
+    // Batch processing configuration
+    const BATCH_SIZE = 10; // Process 10 elements at a time
+    const BATCH_DELAY = 1000; // 1 second delay between batches
+
     const showToastIfComplete = () => {
       processedIssues++;
       
@@ -521,51 +698,77 @@ export class RuleModalComponent implements OnInit {
         this.highlight = true;
       }
     };
-    
-  
-    for (const element of failedElements) {
-      const revitId = element.revitElementId;
-  
-      if (!revitId) {
-        console.warn('Skipping element due to missing Revit Element ID');
-        showToastIfComplete();
-        continue;
-      }
-  
-      console.log(`Processing element - Revit Element ID: ${revitId}`);
-  
-      try {
-        const processResult = await this.viewerService.processModel(revitId);
-  
-        if (processResult) {
-          console.log(`Processed Revit Element ID ${revitId}:`, processResult);
-          const result = this.generateIssuePayloadFromProcessResult(processResult, results);
 
-          console.log("Issue payload for Revit Element ID", revitId, ":", JSON.stringify(result));
-          
-          // Make POST request to create issue
-          console.log('About to create issue for Revit Element ID:', revitId);
-          this.ruleService.createIssue(this.projectId!, this.accUserId, result).subscribe({
-            next: (response: any) => {
-              console.log('Issue created successfully for Revit Element ID', revitId, ':', response);
-              successfulIssues++;
-              showToastIfComplete();
-            },
-            error: (error: any) => {
-              console.error('Error creating issue for Revit Element ID', revitId, ':', error);
-              showToastIfComplete();
-            }
-          });
-        } else {
-          console.warn(`No result returned from processModel for Revit Element ID ${revitId}`);
+    // Process elements in batches
+    const processBatch = async (batch: Array<{ revitElementId: string }>) => {
+      const batchPromises = batch.map(async (element) => {
+        const revitId = element.revitElementId;
+
+        if (!revitId) {
+          console.warn('Skipping element due to missing Revit Element ID');
+          showToastIfComplete();
+          return;
+        }
+
+        console.log(`Processing element - Revit Element ID: ${revitId}`);
+
+        try {
+          const processResult = await this.viewerService.processModel(revitId);
+
+          if (processResult) {
+            console.log(`Processed Revit Element ID ${revitId}:`, processResult);
+            const result = this.generateIssuePayloadFromProcessResult(processResult, this.getResults());
+
+            console.log("Issue payload for Revit Element ID", revitId, ":", JSON.stringify(result));
+            
+            // Make POST request to create issue
+            console.log('About to create issue for Revit Element ID:', revitId);
+            this.ruleService.createIssue(this.projectId!, this.accUserId, result).subscribe({
+              next: (response: any) => {
+                console.log('Issue created successfully for Revit Element ID', revitId, ':', response);
+                successfulIssues++;
+                showToastIfComplete();
+              },
+              error: (error: any) => {
+                console.error('Error creating issue for Revit Element ID', revitId, ':', error);
+                showToastIfComplete();
+              }
+            });
+          } else {
+            console.warn(`No result returned from processModel for Revit Element ID ${revitId}`);
+            showToastIfComplete();
+          }
+        } catch (error) {
+          console.error(`Error processing Revit Element ID ${revitId}:`, error);
           showToastIfComplete();
         }
-      } catch (error) {
-        console.error(`Error processing Revit Element ID ${revitId}:`, error);
-        showToastIfComplete();
+      });
+
+      // Wait for all elements in the current batch to complete
+      await Promise.all(batchPromises);
+    };
+
+    // Process all batches with delays
+    const processAllBatches = async () => {
+      for (let i = 0; i < failedElements.length; i += BATCH_SIZE) {
+        const batch = failedElements.slice(i, i + BATCH_SIZE);
+        console.log(`Processing batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(failedElements.length / BATCH_SIZE)} with ${batch.length} elements`);
+        
+        await processBatch(batch);
+        
+        // Add delay between batches (except for the last batch)
+        if (i + BATCH_SIZE < failedElements.length) {
+          console.log(`Waiting ${BATCH_DELAY}ms before next batch...`);
+          await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+        }
       }
-    }
-  
+    };
+
+    // Start batch processing
+    processAllBatches().catch(error => {
+      console.error('Error in batch processing:', error);
+    });
+
     return failedElements;
   }
   
@@ -573,27 +776,43 @@ export class RuleModalComponent implements OnInit {
     this.showAccIssues.emit(this.getIssuesCreated());
   }
 
-  generateIssuePayloadFromProcessResult(processResult: any, results:any): any {
+  generateIssuePayloadFromProcessResult(processResult: any, results: any): any {
     const { position, objectId, externalId, viewerState, view } = processResult;
   
     let title = '';
     let description = '';
     
-    if (this.ruleType === 'rule1') {
-      title = `Failed - ${view.name}`;
-      description = `${results.find((result: { revitElementId: any; }) => result.revitElementId === objectId)?.message || 'Door clear opening check failed'}`;
-    } else if (this.ruleType === 'rule2') {
-      title = `Ramp Landing Failed - ${view.name}`;
-      description = `${results.find((result: { revitElementId: any; }) => result.revitElementId === objectId)?.message || 'Ramp landing check failed'}`;
-    } else if (this.ruleType === 'rule3') {
-      title = `Ramp Check Failed - ${view.name}`;
-      description = `${results.find((result: { revitElementId: any; }) => result.revitElementId === objectId)?.message || 'Ramp check failed'}`;
-    } else if (this.ruleType === 'rule4') {
-      title = `Stair Check Failed - ${view.name}`;
-      description = `${results.find((result: { revitElementId: any; }) => result.revitElementId === objectId)?.message || 'Stair check failed'}`;
-    } else if (this.ruleType === 'rule5') {
-      title = `Wall Check Failed - ${view.name}`;
-      description = `${results.find((result: { revitElementId: any; }) => result.revitElementId === objectId)?.message || 'Wall check failed'}`;
+    if (this.validationData) {
+      // Handle new validation data structure
+      const validationResult = this.validationData.validationResults.find(result => 
+        result.elementIds.includes(objectId)
+      );
+      
+      if (validationResult) {
+        title = `Validation Failed - ${view.name}`;
+        description = `Type: ${validationResult.typeName}, Family: ${validationResult.familyName}, Width: ${validationResult.widthMm}mm - Failed validation check`;
+      } else {
+        title = `Validation Failed - ${view.name}`;
+        description = `Element validation check failed`;
+      }
+    } else {
+      // Handle legacy rule data structure
+      if (this.ruleType === 'rule1') {
+        title = `Failed - ${view.name}`;
+        description = `${results.find((result: { revitElementId: any; }) => result.revitElementId === objectId)?.message || 'Door clear opening check failed'}`;
+      } else if (this.ruleType === 'rule2') {
+        title = `Ramp Landing Failed - ${view.name}`;
+        description = `${results.find((result: { revitElementId: any; }) => result.revitElementId === objectId)?.message || 'Ramp landing check failed'}`;
+      } else if (this.ruleType === 'rule3') {
+        title = `Ramp Check Failed - ${view.name}`;
+        description = `${results.find((result: { revitElementId: any; }) => result.revitElementId === objectId)?.message || 'Ramp check failed'}`;
+      } else if (this.ruleType === 'rule4') {
+        title = `Stair Check Failed - ${view.name}`;
+        description = `${results.find((result: { revitElementId: any; }) => result.revitElementId === objectId)?.message || 'Stair check failed'}`;
+      } else if (this.ruleType === 'rule5') {
+        title = `Wall Check Failed - ${view.name}`;
+        description = `${results.find((result: { revitElementId: any; }) => result.revitElementId === objectId)?.message || 'Wall check failed'}`;
+      }
     }
 
     return {
@@ -637,4 +856,4 @@ export class RuleModalComponent implements OnInit {
     };
   }
   
-} 
+}

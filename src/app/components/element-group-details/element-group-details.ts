@@ -11,7 +11,8 @@ import { LocalService } from '../../services/local.service';
 import { AutodeskAuthService } from '../../services/autodesk-auth.service';
 import { AuthService } from '../../services/auth.service';
 import { ViewerService } from '../../services/viewer.service';
-
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-element-group-details',
   standalone: true,
@@ -26,6 +27,7 @@ export class ElementGroupDetailsComponent implements OnInit, AfterViewInit {
   elementGroupName: string = '';
   accUserId: string = '';
   loading = false;
+  fullScreenLoading = true; // Full screen loader for initial page load
   elementGroupData: any = null;
   categories: any[] = [];
   error: string = '';
@@ -40,6 +42,7 @@ export class ElementGroupDetailsComponent implements OnInit, AfterViewInit {
   viewerError = '';
   urn = '';
   ruleType: string = 'rule1'; // Track which rule is being checked
+  private baseUrl = environment.apiBaseUrl;
 
   constructor(
     private route: ActivatedRoute,
@@ -48,7 +51,9 @@ export class ElementGroupDetailsComponent implements OnInit, AfterViewInit {
     private localService: LocalService,
     private autodeskAuthService: AutodeskAuthService,
     private authService: AuthService,
-    private viewerService: ViewerService
+    private viewerService: ViewerService,
+    private http: HttpClient,
+
   ) {}
 
   ngOnInit() {
@@ -61,6 +66,18 @@ export class ElementGroupDetailsComponent implements OnInit, AfterViewInit {
       console.log('ElementGroupDetailsComponent: elementGroupId from route:', this.elementGroupId);
       console.log('ElementGroupDetailsComponent: elementGroupName from route:', this.elementGroupName);
     });
+
+    // Fallback timeout to hide loader after 10 seconds (in case API calls fail)
+    setTimeout(() => {
+      if (this.fullScreenLoading) {
+        console.warn('ElementGroupDetailsComponent: Full screen loader timeout reached, hiding loader');
+        this.fullScreenLoading = false;
+      }
+    }, 10000);
+
+
+    
+
     
     // Get alternativeIdentifiers from query parameters
     this.route.queryParams.subscribe(queryParams => {
@@ -105,6 +122,14 @@ export class ElementGroupDetailsComponent implements OnInit, AfterViewInit {
       console.error('ElementGroupDetailsComponent: Missing required parameters');
       this.error = 'Missing required parameters';
     }
+
+    this.http.get<any>(`${this.baseUrl}/rule-engine/getDoorData/${this.elementGroupId}?accUserId=${this.accUserId}`).subscribe((response) => {
+      if(response){
+        // Hide full screen loader after API response
+        this.fullScreenLoading = false;
+      }
+    });
+
   }
 
   loadElementGroupDetails() {
@@ -138,12 +163,14 @@ export class ElementGroupDetailsComponent implements OnInit, AfterViewInit {
         }
         
         this.loading = false;
+        this.fullScreenLoading = false; // Hide full screen loader after main data loads
       },
       error: (error: any) => {
         console.error('ElementGroupDetailsComponent: Error loading element group details:', error);
         console.error('ElementGroupDetailsComponent: Error details:', error.error || error.message);
         this.error = 'Failed to load element group details';
         this.loading = false;
+        this.fullScreenLoading = false; // Hide full screen loader on error
       }
     });
   }

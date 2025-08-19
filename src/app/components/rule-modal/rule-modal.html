@@ -135,22 +135,50 @@
 
           <!-- Summary Section -->
           <div *ngIf="!hasEmptyResults()" class="summary-section">
+            <!-- Summary Card -->
             <div class="summary-card">
               <div class="summary-item">
-                <span class="summary-label">Total Elements</span>
+                <span class="summary-label">{{ isUsingValidationData() ? 'Total Types' : 'Total Elements' }}</span>
                 <span class="summary-value">{{ getTotalCount() }}</span>
               </div>
               <div class="summary-item passed">
-                <span class="summary-label">Passed</span>
+                <span class="summary-label">{{ isUsingValidationData() ? 'Valid Types' : 'Passed' }}</span>
                 <span class="summary-value">{{ getPassedCount() }}</span>
               </div>
               <div class="summary-item failed">
-                <span class="summary-label">Failed</span>
+                <span class="summary-label">{{ isUsingValidationData() ? 'Failed Types' : 'Failed' }}</span>
                 <span class="summary-value">{{ getFailedCount() }}</span>
               </div>
               <div class="summary-item">
                 <span class="summary-label">Pass Rate</span>
                 <span class="summary-value">{{ getPassPercentage() }}%</span>
+              </div>
+            </div>
+
+            <!-- Additional Summary Information for Validation Data -->
+            <div *ngIf="isUsingValidationData() && getSummary()" class="validation-summary-card">
+              <h4>Validation Summary</h4>
+              <div class="validation-summary-grid">
+                <div class="summary-item">
+                  <span class="summary-label">Failed with Element IDs</span>
+                  <span class="summary-value">{{ getSummary()?.failedWithElementIds }}</span>
+                </div>
+                <div class="summary-item">
+                  <span class="summary-label">Failed without Element IDs</span>
+                  <span class="summary-value">{{ getSummary()?.failedWithoutElementIds }}</span>
+                </div>
+                <div class="summary-item">
+                  <span class="summary-label">Total Failed Instances</span>
+                  <span class="summary-value">{{ getSummary()?.totalFailedElementInstances }}</span>
+                </div>
+                <div class="summary-item">
+                  <span class="summary-label">Unique Element IDs</span>
+                  <span class="summary-value">{{ getSummary()?.uniqueElementIds }}</span>
+                </div>
+                <div class="summary-item">
+                  <span class="summary-label">Perfect Matches</span>
+                  <span class="summary-value">{{ getSummary()?.perfectMatchesFound }}</span>
+                </div>
               </div>
             </div>
             
@@ -169,8 +197,58 @@
 
           <!-- Results List -->
           <div *ngIf="!hasEmptyResults()" class="results-section">
-            <h3>Detailed Results</h3>
-            <div class="results-list">
+            <h3>{{ isUsingValidationData() ? 'Validation Results' : 'Detailed Results' }}</h3>
+            
+            <!-- Failure Breakdown Section for Validation Data -->
+            <div *ngIf="isUsingValidationData() && getFailureBreakdown()" class="failure-breakdown-section">
+              <h4>Failure Breakdown</h4>
+              <div class="failure-breakdown-list">
+                <div 
+                  *ngFor="let failure of getFailureBreakdown() | keyvalue" 
+                  class="failure-item"
+                >
+                  <div class="failure-header">
+                    <span class="failure-type-name">{{ failure.key }}</span>
+                    <span class="failure-count">{{ failure.value }} instances</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Results List - Different content based on data type -->
+            <div *ngIf="isUsingValidationData()" class="validation-results-list">
+              <div 
+                *ngFor="let result of getValidationResults()" 
+                class="validation-result-item"
+                [class.valid]="result.isValid"
+                [class.invalid]="!result.isValid"
+              >
+                <div class="result-header">
+                  <span class="type-name">{{ result.typeName }}</span>
+                  <span class="family-name">{{ result.familyName }}</span>
+                  <span class="status-badge" [class.valid]="result.isValid" [class.invalid]="!result.isValid">
+                    {{ result.isValid ? 'VALID' : 'INVALID' }}
+                  </span>
+                </div>
+                <div class="result-details">
+                  <div class="result-properties">
+                    <span class="property-label">Width:</span>
+                    <span class="property-value">{{ result.widthMm }} mm</span>
+                    <span class="property-label">Type ID:</span>
+                    <span class="property-value">{{ result.typeId }}</span>
+                  </div>
+                  <div class="element-ids" *ngIf="result.elementIds && result.elementIds.length > 0">
+                    <span class="element-ids-label">Element IDs:</span>
+                    <div class="element-ids-list">
+                      <span *ngFor="let elementId of result.elementIds" class="element-id">{{ elementId }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Legacy Results List -->
+            <div *ngIf="!isUsingValidationData()" class="results-list">
               <div 
                 *ngFor="let result of getResults()" 
                 class="result-item"

@@ -267,14 +267,40 @@ export class ViewerService {
           console.warn(`No dbId found for Revit Element ID: ${revitElementId}`);
           return;
         }
-        this._3dviewer.highlight(dbId);
+        this._3dviewer.isolate(dbId);
+      }
+
+      highlightElements(revitElementIds: string[]) {
+        if (!revitElementIds || revitElementIds.length === 0) {
+          console.warn('No Revit Element IDs provided for highlighting');
+          return;
+        }
+
+        const dbIds: number[] = [];
+        
+        revitElementIds.forEach(revitElementId => {
+          const dbId = this.mapRevitIdToDbIdFast(revitElementId);
+          if (dbId != null) {
+            dbIds.push(dbId);
+          } else {
+            console.warn(`No dbId found for Revit Element ID: ${revitElementId}`);
+          }
+        });
+
+        if (dbIds.length > 0) {
+          console.log(`Highlighting ${dbIds.length} elements with dbIds:`, dbIds);
+          this._3dviewer.isolate(dbIds);
+        } else {
+          console.warn('No valid dbIds found for any of the provided Revit Element IDs');
+        }
       }
 
       async highlightFailedElements() {
         const dbIds = this.processedRevitIds
+        
           .map(id => this.mapRevitIdToDbIdFast(id))
           .filter((id): id is number => id !== null && id !== undefined);
-      
+      console.log("dbIds", dbIds)
         const viewer = this._3dviewer;
         const model = viewer.model;
       

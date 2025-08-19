@@ -159,6 +159,28 @@
         color: #000000;
         border-color: #fbbf24;
       }
+
+      &.highlight-btn {
+        background: #10b981;
+        color: white;
+        border-color: #10b981;
+
+        &:hover {
+          background: #059669;
+          border-color: #059669;
+        }
+      }
+
+      &.rule1-btn {
+        background: #8b5cf6;
+        color: white;
+        border-color: #8b5cf6;
+
+        &:hover {
+          background: #7c3aed;
+          border-color: #7c3aed;
+        }
+      }
     }
   }
 }
