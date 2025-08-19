@@ -160,6 +160,28 @@ export class RuleModalComponent implements OnInit {
     switch (this.ruleType) {
       case 'rule1':
         this.ruleInfo = {
+          title: 'Rule 1 – Door Width',
+          description:
+            'Validates every door instance for minimum clear width. The rule first looks for a width value on the instance; if missing, it falls back to the door type. If no width is found anywhere, the instance fails.',
+          executionInfo:
+            '1) Filter all door INSTANCES from the AEC Data Model.\n' +
+            '2) For each instance, attempt to read its "Width" parameter.\n' +
+            '3) If the instance has no width, look up the instance’s Family/Type and read the Type "Width".\n' +
+            '4) If a width is found (from instance or type), check width ≥ 850 mm → PASS, else FAIL.\n' +
+            '5) If no width is found in either place, mark as FAIL.\n' +
+            '6) Create ACC issues for all failed elements.',
+          category: 'Doors',
+          thresholds: {
+            minimum: 850,
+            maximum: null,
+            unit: 'mm',
+            requirement:
+              'Door width (instance "Width" or fallback Type "Width") must be ≥ 850 mm. If "Width" is missing on both instance and type, the element FAILS.'
+          },
+        };
+        break;
+      
+        this.ruleInfo = {
           title: 'Rule 1 - Door Type Validation Check',
           description: 'Validates door types and families against accessibility requirements, ensuring proper categorization and compliance.',
           executionInfo: 'Analyzes all door elements from the AEC Data Model, categorizing them by type and family. Validates door dimensions and creates ACC issues for non-compliant elements.',

@@ -67,13 +67,13 @@ export class ElementGroupDetailsComponent implements OnInit, AfterViewInit {
       console.log('ElementGroupDetailsComponent: elementGroupName from route:', this.elementGroupName);
     });
 
-    // Fallback timeout to hide loader after 10 seconds (in case API calls fail)
+    // Fallback timeout to hide loader after 15 seconds (in case API calls fail)
     setTimeout(() => {
       if (this.fullScreenLoading) {
         console.warn('ElementGroupDetailsComponent: Full screen loader timeout reached, hiding loader');
         this.fullScreenLoading = false;
       }
-    }, 10000);
+    }, 15000);
 
 
     
@@ -121,12 +121,23 @@ export class ElementGroupDetailsComponent implements OnInit, AfterViewInit {
     } else {
       console.error('ElementGroupDetailsComponent: Missing required parameters');
       this.error = 'Missing required parameters';
+      // Hide loader if we can't even start loading
+      this.fullScreenLoading = false;
     }
 
-    this.http.get<any>(`${this.baseUrl}/rule-engine/getDoorData/${this.elementGroupId}?accUserId=${this.accUserId}`).subscribe((response) => {
-      if(response){
-        // Hide full screen loader after API response
-        this.fullScreenLoading = false;
+    this.http.get<any>(`${this.baseUrl}/rule-engine/getDoorData/${this.elementGroupId}?accUserId=${this.accUserId}`).subscribe({
+      next: (response) => {
+        console.log('ElementGroupDetailsComponent: Door data API response:', response);
+        if (response && Object.keys(response).length > 0) {
+          // Only hide loader if we have actual data
+          this.fullScreenLoading = false;
+        } else {
+          console.warn('ElementGroupDetailsComponent: Empty response from door data API');
+        }
+      },
+      error: (error) => {
+        console.error('ElementGroupDetailsComponent: Error fetching door data:', error);
+        // Don't hide loader on error, let the main data loading handle it
       }
     });
 
@@ -163,7 +174,14 @@ export class ElementGroupDetailsComponent implements OnInit, AfterViewInit {
         }
         
         this.loading = false;
-        this.fullScreenLoading = false; // Hide full screen loader after main data loads
+        
+        // Only hide full screen loader if we have actual data
+        if (response && (this.categories.length > 0 || response.alternativeIdentifiers)) {
+          this.fullScreenLoading = false;
+          console.log('ElementGroupDetailsComponent: Full screen loader hidden - data loaded successfully');
+        } else {
+          console.warn('ElementGroupDetailsComponent: Keeping loader active - insufficient data received');
+        }
       },
       error: (error: any) => {
         console.error('ElementGroupDetailsComponent: Error loading element group details:', error);
@@ -242,6 +260,14 @@ export class ElementGroupDetailsComponent implements OnInit, AfterViewInit {
     console.log('ElementGroupDetailsComponent: ACC issues modal closed');
     this.showAccIssuesModal = false;
     this.accIssuesCount = 0;
+  }
+
+  // Method to manually hide the full screen loader if needed
+  hideFullScreenLoader() {
+    if (this.fullScreenLoading) {
+      console.log('ElementGroupDetailsComponent: Manually hiding full screen loader');
+      this.fullScreenLoading = false;
+    }
   }
 
   toggleEvaluation() {
