@@ -56,7 +56,7 @@ export class ElementGroupDetailsComponent implements OnInit, AfterViewInit {
 
   ) {}
 
-  ngOnInit() {
+  async ngOnInit() {
     console.log('ElementGroupDetailsComponent: ngOnInit called - component loaded!');
     
     // Get elementGroupId from route parameters
@@ -125,7 +125,7 @@ export class ElementGroupDetailsComponent implements OnInit, AfterViewInit {
       this.fullScreenLoading = false;
     }
 
-    this.http.get<any>(`${this.baseUrl}/rule-engine/getDoorData/${this.elementGroupId}?accUserId=${this.accUserId}`).subscribe({
+    await this.http.get<any>(`${this.baseUrl}/rule-engine/getDoorData/${this.elementGroupId}?accUserId=${this.accUserId}`).subscribe({
       next: (response) => {
         console.log('ElementGroupDetailsComponent: Door data API response:', response);
         if (response && Object.keys(response).length > 0) {
@@ -140,6 +140,39 @@ export class ElementGroupDetailsComponent implements OnInit, AfterViewInit {
         // Don't hide loader on error, let the main data loading handle it
       }
     });
+
+    await this.http.get<any>(`${this.baseUrl}/rule-engine/getRampData/${this.elementGroupId}?accUserId=${this.accUserId}`).subscribe({
+      next: (response) => {
+        console.log('ElementGroupDetailsComponent: Door data API response:', response);
+        if (response && Object.keys(response).length > 0) {
+          // Only hide loader if we have actual data
+          this.fullScreenLoading = false;
+        } else {
+          console.warn('ElementGroupDetailsComponent: Empty response from door data API');
+        }
+      },
+      error: (error) => {
+        console.error('ElementGroupDetailsComponent: Error fetching door data:', error);
+        // Don't hide loader on error, let the main data loading handle it
+      }
+    });
+
+    await this.http.get<any>(`${this.baseUrl}/rule-engine/getParkingData/${this.elementGroupId}/BASEMENT?accUserId=${this.accUserId}`).subscribe({
+      next: (response) => {
+        console.log('ElementGroupDetailsComponent: Door data API response:', response);
+        if (response && Object.keys(response).length > 0) {
+          // Only hide loader if we have actual data
+          this.fullScreenLoading = false;
+        } else {
+          console.warn('ElementGroupDetailsComponent: Empty response from door data API');
+        }
+      },
+      error: (error) => {
+        console.error('ElementGroupDetailsComponent: Error fetching door data:', error);
+        // Don't hide loader on error, let the main data loading handle it
+      }
+    });
+
 
   }
 

@@ -61,6 +61,44 @@
                 </div>
               </div>
             </div>
+
+            <!-- Thresholds Table Section -->
+            <div class="info-section" *ngIf="ruleInfo.thresholdsTable">
+              <h3>{{ ruleType === 'rule2' ? 'Slope Validation Table' : 'Parking Accessibility Requirements' }}</h3>
+              <div class="thresholds-table-card">
+                <table class="thresholds-table">
+                  <thead>
+                    <tr>
+                      <th *ngFor="let header of ruleInfo.thresholdsTable.headers">{{ header }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let row of ruleInfo.thresholdsTable.rows; let i = index">
+                      <td>
+                        <!-- Rule 2: Ramp slope ranges -->
+                        <ng-container *ngIf="ruleType === 'rule2'">
+                          <ng-container *ngIf="i === 0">
+                            0 to {{ ruleInfo.thresholdsTable.rows[i + 1]?.[0] }}
+                          </ng-container>
+                          <ng-container *ngIf="i > 0 && i < ruleInfo.thresholdsTable.rows.length - 1">
+                            more than {{ ruleInfo.thresholdsTable.rows[i][0] }} to {{ ruleInfo.thresholdsTable.rows[i + 1]?.[0] }}
+                          </ng-container>
+                          <ng-container *ngIf="i === ruleInfo.thresholdsTable.rows.length - 1">
+                            Exceeding {{ ruleInfo.thresholdsTable.rows[i][0] }}
+                          </ng-container>
+                        </ng-container>
+                        
+                        <!-- Rule 3: Parking lot ranges -->
+                        <ng-container *ngIf="ruleType === 'rule3'">
+                          {{ getParkingRangeText(i) }}
+                        </ng-container>
+                      </td>
+                      <td>{{ ruleInfo.thresholdsTable.rows[i][1] }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
             
             <div class="info-section">
               <h3>What will happen?</h3>
@@ -155,8 +193,23 @@
               </div>
             </div>
 
+            <!-- Rule 3 Specific Summary Information -->
+            <div *ngIf="ruleType === 'rule3' && rule3Data && rule3Data.summary" class="rule3-summary-card">
+              <h4>Parking Compliance Summary</h4>
+              <div class="rule3-summary-grid">
+                <div class="summary-item">
+                  <span class="summary-label">Compliance Percentage</span>
+                  <span class="summary-value">{{ getCompliancePercentage() }}%</span>
+                </div>
+                <div class="summary-item">
+                  <span class="summary-label">Handicapped Parking % of Total</span>
+                  <span class="summary-value">{{ getHandicappedPercentage() }}%</span>
+                </div>
+              </div>
+            </div>
+
             <!-- Additional Summary Information for Validation Data -->
-            <div *ngIf="isUsingValidationData() && getSummary()" class="validation-summary-card">
+            <div *ngIf="isUsingValidationData() && getSummary() && ruleType !== 'rule3'" class="validation-summary-card">
               <h4>Validation Summary</h4>
               <div class="validation-summary-grid">
                 <div class="summary-item">
@@ -276,6 +329,46 @@
                     <span class="ifc-value">{{ result.ifcGUID }}</span>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Parking Analysis Results for Rule 3 -->
+          <div *ngIf="ruleType === 'rule3' && rule3Data && rule3Data.parkingAnalysis" class="parking-analysis-section">
+            <h3>Parking Analysis Results</h3>
+            <div class="parking-analysis-card">
+              <div class="parking-analysis-grid">
+                <div class="analysis-item">
+                  <span class="analysis-label">Total Parking Spaces</span>
+                  <span class="analysis-value">{{ rule3Data.parkingAnalysis.totalParkingSpaces }}</span>
+                </div>
+                <div class="analysis-item">
+                  <span class="analysis-label">Normal Parking Spaces</span>
+                  <span class="analysis-value">{{ rule3Data.parkingAnalysis.normalParkingSpaces }}</span>
+                </div>
+                <div class="analysis-item">
+                  <span class="analysis-label">Handicapped Parking Spaces</span>
+                  <span class="analysis-value">{{ rule3Data.parkingAnalysis.handicappedParkingSpaces }}</span>
+                </div>
+                <div class="analysis-item">
+                  <span class="analysis-label">Required Handicapped Spaces</span>
+                  <span class="analysis-value">{{ rule3Data.parkingAnalysis.requiredHandicappedSpaces }}</span>
+                </div>
+                <div class="analysis-item">
+                  <span class="analysis-label">Actual Handicapped Spaces</span>
+                  <span class="analysis-value">{{ rule3Data.parkingAnalysis.actualHandicappedSpaces }}</span>
+                </div>
+                <div class="analysis-item">
+                  <span class="analysis-label">Shortfall</span>
+                  <span class="analysis-value" [class.shortfall]="rule3Data.parkingAnalysis.shortfall > 0">
+                    {{ rule3Data.parkingAnalysis.shortfall }}
+                  </span>
+                </div>
+              </div>
+              
+              <div class="validation-status" [class.passed]="rule3Data.parkingAnalysis.isValidationPassed" [class.failed]="!rule3Data.parkingAnalysis.isValidationPassed">
+                <i class="fas" [class.fa-check-circle]="rule3Data.parkingAnalysis.isValidationPassed" [class.fa-times-circle]="!rule3Data.parkingAnalysis.isValidationPassed"></i>
+                <span class="status-text">{{ rule3Data.parkingAnalysis.validationMessage }}</span>
               </div>
             </div>
           </div>

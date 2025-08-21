@@ -78,14 +78,13 @@ export class ViewerService {
                             console.log('Global Offset:', self.offset);
                             await self._3dviewer.loadExtension('Autodesk.DocumentBrowser');
                             self._3dviewer.loadExtension('Autodesk.DataVisualization')
-  .then(() => {
-    console.log('✅ DataVisualization extension loaded successfully');
-  })
-  .catch((err: any) => {
-    console.error('❌ Failed to load DataVisualization extension', err);
-  });
+                              .then(() => {
+                                console.log('✅ DataVisualization extension loaded successfully');
+                              })
+                              .catch((err: any) => {
+                                console.error('❌ Failed to load DataVisualization extension', err);
+                              });
 
-                            // await self.buildIfcGuidMap();                              
                             resolve(self._3dviewer);
                         });
                         self._3dviewer.addEventListener(Autodesk.Viewing.OBJECT_TREE_CREATED_EVENT, async () => {
@@ -414,105 +413,7 @@ export class ViewerService {
       
       
 
-//       async logAllElementProperties(): Promise<void> {
-//   const model = this._3dviewer.model;
-//   const instanceTree = model.getInstanceTree();
 
-//   if (!instanceTree) {
-//     console.error("Instance tree is not available.");
-//     return;
-//   }
-
-//   const rootId = instanceTree.getRootId();
-//   const allDbIds: number[] = [];
-//   this._collectAllDbIds(instanceTree, rootId, allDbIds);
-
-//   console.log(`Traversing ${allDbIds.length} dbIds to log all properties:`);
-
-//   for (const dbId of allDbIds) {
-//     await new Promise<void>((resolve) => {
-//       model.getProperties(dbId, (props: any) => {
-//         console.log(`--- dbId: ${dbId} ---`);
-//         console.log(props); // This prints name, externalId, and all properties
-//         resolve();
-//       });
-//     });
-//   }
-
-//   console.log("Finished logging properties for all dbIds.");
-// }
-
-// private _collectAllDbIds(tree: any, nodeId: number, dbIdList: number[]) {
-//   dbIdList.push(nodeId);
-//   tree.enumNodeChildren(nodeId, (childId: number) => {
-//     this._collectAllDbIds(tree, childId, dbIdList);
-//   });
-// }
-
-
-    // async buildIfcGuidMap(): Promise<void> {
-    //     return new Promise((resolve, reject) => {
-    //         this._3dviewer.model.getObjectTree((instanceTree: any) => {
-    //             const allDbIds: number[] = [];
-    //             instanceTree.enumNodeChildren(instanceTree.getRootId(), (dbId: number) => {
-    //                 allDbIds.push(dbId);
-    //             }, true);
-      
-    //     this._3dviewer.model.getBulkProperties(
-    //       allDbIds,
-    //       ['IfcGUID'],
-    //       (results: Array<{ dbId: number; properties: Array<{ displayName: string; displayValue: string }> }>) => {
-    //         results.forEach((res) => {
-    //           const guidProp = res.properties.find((p) => p.displayName === 'IfcGUID');
-    //           if (guidProp && guidProp.displayValue) {
-    //             const guid = guidProp.displayValue;
-    //           if (!this.ifcGuidToDbIdMap.has(guid)) {
-    //             this.ifcGuidToDbIdMap.set(guid, []);
-    //           }
-    //           this.ifcGuidToDbIdMap.get(guid)!.push(res.dbId);
-    //         }
-    //       });
-    //     //   console.log('IfcGUID map built:', JSON.stringify(Array.from(this.ifcGuidToDbIdMap.entries()), null, 2));
-    //       resolve();
-    //     }, (error: any) => reject(error));
-    //   });
-    //   });
-    //   }
-      
-    //   mapIfcGuidToDbIdFast(targetIfcGuid: string): number | null {
-    //     const dbIds = this.ifcGuidToDbIdMap.get(targetIfcGuid);
-    //     return dbIds ? dbIds[0] : null;
-    //   }
-      
-    //   async processModel(elementIfcGuid: string) {
-    //     const dbId = this.mapIfcGuidToDbIdFast(elementIfcGuid);
-      
-    //     if (dbId == null) {
-    //       console.warn(`⚠️ Could not find dbId for IFC GUID: ${elementIfcGuid}`);
-    //       return null;
-    //     }
-      
-    //     const fragList = this._3dviewer.model.getFragmentList();
-    //     const instanceTree = this._3dviewer.model.getInstanceTree();
-    //     const bbox = new THREE.Box3();
-      
-    //     instanceTree.enumNodeFragments(dbId, (fragId: number) => {
-    //       const fragBbox = new THREE.Box3();
-    //       fragList.getWorldBounds(fragId, fragBbox);
-    //       bbox.union(fragBbox);
-    //     });
-      
-    //     const centroid = new THREE.Vector3();
-    //     bbox.getCenter(centroid);
-      
-    //     console.log(`📦 Calculated centroid for dbId ${dbId}:`, centroid);
-      
-    //     return {
-    //       partId: dbId,
-    //       point: `${centroid.x},${centroid.y},${centroid.z}`
-    //     };
-    //   }
-      
 
 
 }
