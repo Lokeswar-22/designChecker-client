@@ -1,23 +1,17 @@
-<!-- Spinner Loader with Blurred Background -->
-<div *ngIf="fullScreenLoading" class="spinner-loader">
-  <div class="loader-content">
-    <div class="loader-spinner"></div>
-  </div>
-</div>
-
 <div class="element-group-details-container">
   <app-header></app-header>
-  
+
   <div class="main-content">
-    <app-sidebar 
+    <app-sidebar
       [showRules]="true"
       (rule1Click)="onRule1Click()"
       (rule2Click)="onRule2Click()"
       (rule3Click)="onRule3Click()"
       (rule4Click)="onRule4Click()"
-      (rule5Click)="onRule5Click()">
+      (rule5Click)="onRule5Click()"
+    >
     </app-sidebar>
-    
+
     <div class="content-area">
       <div class="header-section">
         <button class="back-button" (click)="onBackToDocuments()">
@@ -30,7 +24,7 @@
           Evaluation
         </button>
       </div>
-      
+
       <div class="data-section">
         <!-- 3D Viewer Section -->
         <div class="viewer-section">
@@ -50,22 +44,31 @@
           <div class="spinner"></div>
           <p>Loading element group details...</p>
         </div>
-        
+
         <div *ngIf="error" class="error">
           <p>{{ error }}</p>
         </div>
-        
-        <div *ngIf="!loading && !error && showEvaluation && categories.length > 0" class="categories-section">
+
+        <div
+          *ngIf="!loading && !error && showEvaluation && categories.length > 0"
+          class="categories-section"
+        >
           <h3>Available Categories</h3>
           <div class="categories-grid">
             <div class="category-card" *ngFor="let category of categories">
               <div class="category-header">
-                <h4 class="category-name">{{ category.name || 'Category' }}</h4>
-                <span class="category-count">{{ getTotalCount(category) }} total</span>
+                <h4 class="category-name">{{ category.name || "Category" }}</h4>
+                <span class="category-count"
+                  >{{ getTotalCount(category) }} total</span
+                >
               </div>
-              
+
               <div class="values-grid">
-                <div class="value-card" *ngFor="let item of category.values" (click)="onValueCardClick(item)">
+                <div
+                  class="value-card"
+                  *ngFor="let item of category.values"
+                  (click)="onValueCardClick(item)"
+                >
                   <div class="value-content">
                     <span class="value-text">{{ item.value }}</span>
                     <span class="value-count">{{ item.count }}</span>
@@ -75,8 +78,11 @@
             </div>
           </div>
         </div>
-        
-        <div *ngIf="!loading && !error && categories.length === 0" class="no-data">
+
+        <div
+          *ngIf="!loading && !error && categories.length === 0"
+          class="no-data"
+        >
           <p>No categories available for this element group.</p>
         </div>
       </div>
@@ -85,27 +91,64 @@
 </div>
 
 <!-- Elements Modal -->
-<app-elements-modal 
+<app-elements-modal
   [isVisible]="showElementsModal"
   [elementGroupId]="elementGroupId"
   [accUserId]="accUserId"
   [categoryName]="selectedCategoryName"
-  (close)="onCloseElementsModal()">
+  (close)="onCloseElementsModal()"
+>
 </app-elements-modal>
 
 <!-- Rule Modal -->
-<app-rule-modal 
+<app-rule-modal
   [isVisible]="showRuleModal"
   [elementGroupId]="elementGroupId"
   [accUserId]="accUserId"
   [ruleType]="ruleType"
   (close)="onCloseRuleModal()"
-  (showAccIssues)="onShowAccIssues($event)">
+  (showAccIssues)="onShowAccIssues($event)"
+>
 </app-rule-modal>
 
 <!-- ACC Issues Modal -->
-<app-acc-issues-modal 
+<app-acc-issues-modal
   [isVisible]="showAccIssuesModal"
   [issuesCount]="accIssuesCount"
-  (close)="onCloseAccIssuesModal()">
-</app-acc-issues-modal> 
+  (close)="onCloseAccIssuesModal()"
+>
+</app-acc-issues-modal>
+
+<!-- Show only while syncing -->
+<!-- Sticky top notice bar -->
+<div
+  *ngIf="isLoading && !compact"
+  class="rule-sync bar"
+  role="status"
+  aria-live="polite"
+>
+  <div class="bar__inner">
+    <div class="bar__left">
+      <span class="dot-spinner" aria-hidden="true"></span>
+      <span class="msg">
+        <strong>Rule data is syncing</strong> — please don’t access the Rules
+        until it completes.
+      </span>
+    </div>
+    <button type="button" class="chip" (click)="toggleCompact()">
+      Compact
+    </button>
+  </div>
+</div>
+
+<!-- Compact floating pill (top-right, click to expand) -->
+<div
+  *ngIf="isLoading && compact"
+  class="rule-sync pill"
+  role="status"
+  aria-live="polite"
+  (click)="toggleCompact()"
+>
+  <span class="dot-spinner" aria-hidden="true"></span>
+  <span>Syncing rules…</span>
+</div>

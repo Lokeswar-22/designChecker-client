@@ -1,5 +1,5 @@
-import { Component, Output, EventEmitter, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, EventEmitter, HostListener, Output } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
@@ -8,17 +8,14 @@ import { AuthService } from '../../services/auth.service';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './header.html',
-  styleUrl: './header.scss'
+  styleUrl: './header.scss',
 })
 export class HeaderComponent {
   @Output() mobileMenuToggle = new EventEmitter<void>();
   isMobile = false;
   currentUser: any = null;
 
-  constructor(
-    private router: Router,
-    private authService: AuthService
-  ) {}
+  constructor(private router: Router, private authService: AuthService) {}
 
   @HostListener('window:resize')
   onResize() {
@@ -27,7 +24,7 @@ export class HeaderComponent {
 
   ngOnInit() {
     this.checkMobile();
-    this.authService.currentUser$.subscribe(user => {
+    this.authService.currentUser$.subscribe((user) => {
       this.currentUser = user;
     });
   }
@@ -41,7 +38,6 @@ export class HeaderComponent {
   }
 
   onUserClick() {
-    // Show logout option or navigate to logout
     if (confirm('Do you want to logout?')) {
       this.authService.logout();
     }
@@ -49,19 +45,18 @@ export class HeaderComponent {
 
   getUserDisplayName(): string {
     if (this.currentUser) {
-      // Try to get username from login data first
       if (this.currentUser.username) {
         return this.currentUser.username;
       }
-      // Fallback to firstName + lastName
       if (this.currentUser.firstName || this.currentUser.lastName) {
-        return `${this.currentUser.firstName || ''} ${this.currentUser.lastName || ''}`.trim();
+        return `${this.currentUser.firstName || ''} ${
+          this.currentUser.lastName || ''
+        }`.trim();
       }
-      // Fallback to email
       if (this.currentUser.email) {
         return this.currentUser.email;
       }
     }
     return 'User';
   }
-} 
+}
