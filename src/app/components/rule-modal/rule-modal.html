@@ -16,7 +16,7 @@
               <h3>Rule Description</h3>
               <p>{{ ruleInfo.description }}</p>
             </div>
-            
+
             <div class="info-section">
               <h3>Category</h3>
               <span class="category-badge">{{ ruleInfo.category }}</span>
@@ -30,32 +30,63 @@
                   <i class="fas fa-check-circle"></i>
                   <span>{{ ruleInfo.thresholds.requirement }}</span>
                 </div>
-                
-                <div class="thresholds-grid" *ngIf="ruleInfo.thresholds.minimum !== null || ruleInfo.thresholds.maximum !== null">
-                  <div class="threshold-item" *ngIf="ruleInfo.thresholds.minimum !== null">
+
+                <div
+                  class="thresholds-grid"
+                  *ngIf="
+                    ruleInfo.thresholds.minimum !== null ||
+                    ruleInfo.thresholds.maximum !== null
+                  "
+                >
+                  <div
+                    class="threshold-item"
+                    *ngIf="ruleInfo.thresholds.minimum !== null"
+                  >
                     <span class="threshold-label">Minimum</span>
                     <span class="threshold-value">
-                      <ng-container *ngIf="typeof ruleInfo.thresholds.minimum === 'number'">
+                      <ng-container
+                        *ngIf="typeof ruleInfo.thresholds.minimum === 'number'"
+                      >
                         {{ ruleInfo.thresholds.minimum }}
                       </ng-container>
-                      <ng-container *ngIf="typeof ruleInfo.thresholds.minimum === 'string'">
+                      <ng-container
+                        *ngIf="typeof ruleInfo.thresholds.minimum === 'string'"
+                      >
                         {{ ruleInfo.thresholds.minimum }}
                       </ng-container>
-                      <ng-container *ngIf="typeof ruleInfo.thresholds.minimum === 'object' && ruleInfo.thresholds.minimum !== null">
+                      <ng-container
+                        *ngIf="typeof ruleInfo.thresholds.minimum === 'object' && ruleInfo.thresholds.minimum !== null"
+                      >
                         <div class="complex-threshold">
-                          <div>Clear Width: {{ ruleInfo.thresholds.minimum.clearWidth }} mm</div>
-                          <div>Transfer Zone: {{ ruleInfo.thresholds.minimum.transferZone.width }} × {{ ruleInfo.thresholds.minimum.transferZone.depth }} mm</div>
+                          <div>
+                            Clear Width:
+                            {{ ruleInfo.thresholds.minimum.clearWidth }} mm
+                          </div>
+                          <div>
+                            Transfer Zone:
+                            {{ ruleInfo.thresholds.minimum.transferZone.width }}
+                            ×
+                            {{ ruleInfo.thresholds.minimum.transferZone.depth }}
+                            mm
+                          </div>
                         </div>
                       </ng-container>
-                      <span class="unit" *ngIf="ruleInfo.thresholds.unit">{{ ruleInfo.thresholds.unit }}</span>
+                      <span class="unit" *ngIf="ruleInfo.thresholds.unit">{{
+                        ruleInfo.thresholds.unit
+                      }}</span>
                     </span>
                   </div>
-                  
-                  <div class="threshold-item" *ngIf="ruleInfo.thresholds.maximum !== null">
+
+                  <div
+                    class="threshold-item"
+                    *ngIf="ruleInfo.thresholds.maximum !== null"
+                  >
                     <span class="threshold-label">Maximum</span>
                     <span class="threshold-value">
                       {{ ruleInfo.thresholds.maximum }}
-                      <span class="unit" *ngIf="ruleInfo.thresholds.unit">{{ ruleInfo.thresholds.unit }}</span>
+                      <span class="unit" *ngIf="ruleInfo.thresholds.unit">{{
+                        ruleInfo.thresholds.unit
+                      }}</span>
                     </span>
                   </div>
                 </div>
@@ -64,30 +95,37 @@
 
             <!-- Thresholds Table Section -->
             <div class="info-section" *ngIf="ruleInfo.thresholdsTable">
-              <h3>{{ ruleType === 'rule2' ? 'Slope Validation Table' : 'Parking Accessibility Requirements' }}</h3>
+              <h3>
+                {{
+                  ruleType === "rule2"
+                    ? "Slope Validation Table"
+                    : "Parking Accessibility Requirements"
+                }}
+              </h3>
               <div class="thresholds-table-card">
                 <table class="thresholds-table">
                   <thead>
                     <tr>
-                      <th *ngFor="let header of ruleInfo.thresholdsTable.headers">{{ header }}</th>
+                      <th
+                        *ngFor="let header of ruleInfo.thresholdsTable.headers"
+                      >
+                        {{ header }}
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr *ngFor="let row of ruleInfo.thresholdsTable.rows; let i = index">
+                    <tr
+                      *ngFor="
+                        let row of ruleInfo.thresholdsTable.rows;
+                        let i = index
+                      "
+                    >
                       <td>
                         <!-- Rule 2: Ramp slope ranges -->
                         <ng-container *ngIf="ruleType === 'rule2'">
-                          <ng-container *ngIf="i === 0">
-                            0 to {{ ruleInfo.thresholdsTable.rows[i + 1]?.[0] }}
-                          </ng-container>
-                          <ng-container *ngIf="i > 0 && i < ruleInfo.thresholdsTable.rows.length - 1">
-                            more than {{ ruleInfo.thresholdsTable.rows[i][0] }} to {{ ruleInfo.thresholdsTable.rows[i + 1]?.[0] }}
-                          </ng-container>
-                          <ng-container *ngIf="i === ruleInfo.thresholdsTable.rows.length - 1">
-                            Exceeding {{ ruleInfo.thresholdsTable.rows[i][0] }}
-                          </ng-container>
+                          {{ ruleInfo.thresholdsTable.rows[i][0] }}
                         </ng-container>
-                        
+
                         <!-- Rule 3: Parking lot ranges -->
                         <ng-container *ngIf="ruleType === 'rule3'">
                           {{ getParkingRangeText(i) }}
@@ -99,12 +137,12 @@
                 </table>
               </div>
             </div>
-            
+
             <div class="info-section">
               <h3>What will happen?</h3>
               <p>{{ ruleInfo.executionInfo }}</p>
             </div>
-            
+
             <div class="warning-section">
               <div class="warning-icon">
                 <i class="fas fa-info-circle"></i>
@@ -112,10 +150,18 @@
               <div class="warning-content">
                 <h4>Important Information</h4>
                 <ul>
-                  <li>This process will analyze all {{ ruleInfo.category.toLowerCase() }} elements in the selected group</li>
-                  <li>ACC issues will be automatically created for failed elements</li>
+                  <li>
+                    This process will analyze all
+                    {{ ruleInfo.category.toLowerCase() }} elements in the
+                    selected group
+                  </li>
+                  <li>
+                    ACC issues will be automatically created for failed elements
+                  </li>
                   <li>The process may take a few moments to complete</li>
-                  <li>You can view the created issues in ACC after completion</li>
+                  <li>
+                    You can view the created issues in ACC after completion
+                  </li>
                 </ul>
               </div>
             </div>
@@ -163,8 +209,13 @@
               <div class="empty-results-info">
                 <p>This may happen when:</p>
                 <ul>
-                  <li>The selected element group doesn't contain any {{ ruleInfo.category.toLowerCase() }} elements</li>
-                  <li>The elements are not properly categorized in the model</li>
+                  <li>
+                    The selected element group doesn't contain any
+                    {{ ruleInfo.category.toLowerCase() }} elements
+                  </li>
+                  <li>
+                    The elements are not properly categorized in the model
+                  </li>
                   <li>The element group selection is empty</li>
                 </ul>
               </div>
@@ -176,15 +227,16 @@
             <!-- Summary Card -->
             <div class="summary-card">
               <div class="summary-item">
-                <span class="summary-label">{{ isUsingValidationData() ? 'Total Types' : 'Total Elements' }}</span>
+                <span class="summary-label">{{ "Total Elements" }}</span>
                 <span class="summary-value">{{ getTotalCount() }}</span>
               </div>
-              <div class="summary-item passed">
-                <span class="summary-label">{{ isUsingValidationData() ? 'Valid Types' : 'Passed' }}</span>
+              <!-- Show detailed summary for all rules except Rule2 -->
+              <div *ngIf="ruleType !== 'rule2'" class="summary-item passed">
+                <span class="summary-label">{{ "Passed Elements" }}</span>
                 <span class="summary-value">{{ getPassedCount() }}</span>
               </div>
-              <div class="summary-item failed">
-                <span class="summary-label">{{ isUsingValidationData() ? 'Failed Types' : 'Failed' }}</span>
+              <div *ngIf="ruleType !== 'rule2'" class="summary-item failed">
+                <span class="summary-label">{{ "Failed Elements" }}</span>
                 <span class="summary-value">{{ getFailedCount() }}</span>
               </div>
               <div class="summary-item">
@@ -193,53 +245,92 @@
               </div>
             </div>
 
-            <!-- Rule 3 Specific Summary Information -->
-            <div *ngIf="ruleType === 'rule3' && rule3Data && rule3Data.summary" class="rule3-summary-card">
-              <h4>Parking Compliance Summary</h4>
-              <div class="rule3-summary-grid">
+            <!-- Rule 2 and Rule 3 Specific Summary Information -->
+            <div
+              *ngIf="
+                isParkingRule() &&
+                rule2Data &&
+                (rule2Data.summary || rule2Data.parkingAnalysis)
+              "
+              class="parking-accessibility-summary-card"
+            >
+              <h4>
+                {{
+                  ruleType === "rule2"
+                    ? "Parking Accessibility Summary"
+                    : "Parking Compliance Summary"
+                }}
+              </h4>
+              <div class="parking-summary-grid">
                 <div class="summary-item">
                   <span class="summary-label">Compliance Percentage</span>
-                  <span class="summary-value">{{ getCompliancePercentage() }}%</span>
+                  <span class="summary-value compliance-value"
+                    >{{ getCompliancePercentage() }}%</span
+                  >
                 </div>
                 <div class="summary-item">
-                  <span class="summary-label">Handicapped Parking % of Total</span>
-                  <span class="summary-value">{{ getHandicappedPercentage() }}%</span>
+                  <span class="summary-label"
+                    >Handicapped Parking % of Total</span
+                  >
+                  <span class="summary-value handicapped-value"
+                    >{{ getHandicappedPercentage() }}%</span
+                  >
                 </div>
               </div>
             </div>
 
             <!-- Additional Summary Information for Validation Data -->
-            <div *ngIf="isUsingValidationData() && getSummary() && ruleType !== 'rule3'" class="validation-summary-card">
+            <div
+              *ngIf="
+                isUsingValidationData() &&
+                getSummary() &&
+                ruleType !== 'rule3' &&
+                ruleType !== 'rule2'
+              "
+              class="validation-summary-card"
+            >
               <h4>Validation Summary</h4>
               <div class="validation-summary-grid">
                 <div class="summary-item">
                   <span class="summary-label">Failed with Element IDs</span>
-                  <span class="summary-value">{{ getSummary()?.failedWithElementIds }}</span>
+                  <span class="summary-value">{{
+                    getSummary()?.failedWithElementIds
+                  }}</span>
                 </div>
                 <div class="summary-item">
                   <span class="summary-label">Failed without Element IDs</span>
-                  <span class="summary-value">{{ getSummary()?.failedWithoutElementIds }}</span>
+                  <span class="summary-value">{{
+                    getSummary()?.failedWithoutElementIds
+                  }}</span>
                 </div>
                 <div class="summary-item">
                   <span class="summary-label">Total Failed Instances</span>
-                  <span class="summary-value">{{ getSummary()?.totalFailedElementInstances }}</span>
+                  <span class="summary-value">{{
+                    getSummary()?.totalFailedElementInstances
+                  }}</span>
                 </div>
                 <div class="summary-item">
                   <span class="summary-label">Unique Element IDs</span>
-                  <span class="summary-value">{{ getSummary()?.uniqueElementIds }}</span>
+                  <span class="summary-value">{{
+                    getSummary()?.uniqueElementIds
+                  }}</span>
                 </div>
                 <div class="summary-item">
                   <span class="summary-label">Perfect Matches</span>
-                  <span class="summary-value">{{ getSummary()?.perfectMatchesFound }}</span>
+                  <span class="summary-value">{{
+                    getSummary()?.perfectMatchesFound
+                  }}</span>
                 </div>
               </div>
             </div>
-            
+
             <!-- Issues Created Section -->
             <div *ngIf="getIssuesCreated() > 0" class="issues-created-section">
               <div class="issues-created-card">
                 <i class="fas fa-exclamation-circle"></i>
-                <span class="issues-created-text">{{ getIssuesCreated() }} issues are created in ACC</span>
+                <span class="issues-created-text"
+                  >{{ getIssuesCreated() }} issues are created in ACC</span
+                >
                 <button class="view-issues-button" (click)="onShowAccIssues()">
                   <i class="fas fa-eye"></i>
                   View Issues
@@ -249,29 +340,50 @@
           </div>
 
           <!-- Results List -->
-          <div *ngIf="!hasEmptyResults()" class="results-section">
-            <h3>{{ isUsingValidationData() ? 'Validation Results' : 'Detailed Results' }}</h3>
-            
+          <div
+            *ngIf="
+              !hasEmptyResults() &&
+              getResults().length > 0 &&
+              ruleType !== 'rule2'
+            "
+            class="results-section"
+          >
+            <h3>
+              {{
+                isUsingValidationData()
+                  ? "Validation Results"
+                  : "Detailed Results"
+              }}
+            </h3>
+
             <!-- Failure Breakdown Section for Validation Data -->
-            <div *ngIf="isUsingValidationData() && getFailureBreakdown()" class="failure-breakdown-section">
+            <div
+              *ngIf="isUsingValidationData() && getFailureBreakdown()"
+              class="failure-breakdown-section"
+            >
               <h4>Failure Breakdown</h4>
               <div class="failure-breakdown-list">
-                <div 
-                  *ngFor="let failure of getFailureBreakdown() | keyvalue" 
+                <div
+                  *ngFor="let failure of getFailureBreakdown() | keyvalue"
                   class="failure-item"
                 >
                   <div class="failure-header">
                     <span class="failure-type-name">{{ failure.key }}</span>
-                    <span class="failure-count">{{ failure.value }} instances</span>
+                    <span class="failure-count"
+                      >{{ failure.value }} instances</span
+                    >
                   </div>
                 </div>
               </div>
             </div>
 
             <!-- Results List - Different content based on data type -->
-            <div *ngIf="isUsingValidationData()" class="validation-results-list">
-              <div 
-                *ngFor="let result of getValidationResults()" 
+            <div
+              *ngIf="isUsingValidationData()"
+              class="validation-results-list"
+            >
+              <div
+                *ngFor="let result of getValidationResults()"
                 class="validation-result-item"
                 [class.valid]="result.isValid"
                 [class.invalid]="!result.isValid"
@@ -279,8 +391,12 @@
                 <div class="result-header">
                   <span class="type-name">{{ result.typeName }}</span>
                   <span class="family-name">{{ result.familyName }}</span>
-                  <span class="status-badge" [class.valid]="result.isValid" [class.invalid]="!result.isValid">
-                    {{ result.isValid ? 'VALID' : 'INVALID' }}
+                  <span
+                    class="status-badge"
+                    [class.valid]="result.isValid"
+                    [class.invalid]="!result.isValid"
+                  >
+                    {{ result.isValid ? "VALID" : "INVALID" }}
                   </span>
                 </div>
                 <div class="result-details">
@@ -290,10 +406,17 @@
                     <span class="property-label">Type ID:</span>
                     <span class="property-value">{{ result.typeId }}</span>
                   </div>
-                  <div class="element-ids" *ngIf="result.elementIds && result.elementIds.length > 0">
+                  <div
+                    class="element-ids"
+                    *ngIf="result.elementIds && result.elementIds.length > 0"
+                  >
                     <span class="element-ids-label">Element IDs:</span>
                     <div class="element-ids-list">
-                      <span *ngFor="let elementId of result.elementIds" class="element-id">{{ elementId }}</span>
+                      <span
+                        *ngFor="let elementId of result.elementIds"
+                        class="element-id"
+                        >{{ elementId }}</span
+                      >
                     </div>
                   </div>
                 </div>
@@ -302,16 +425,20 @@
 
             <!-- Legacy Results List -->
             <div *ngIf="!isUsingValidationData()" class="results-list">
-              <div 
-                *ngFor="let result of getResults()" 
+              <div
+                *ngFor="let result of getResults()"
                 class="result-item"
                 [class.passed]="result.passed"
                 [class.failed]="!result.passed"
               >
                 <div class="result-header">
                   <span class="element-id">{{ result.revitElementId }}</span>
-                  <span class="status-badge" [class.passed]="result.passed" [class.failed]="!result.passed">
-                    {{ result.passed ? 'PASS' : 'FAIL' }}
+                  <span
+                    class="status-badge"
+                    [class.passed]="result.passed"
+                    [class.failed]="!result.passed"
+                  >
+                    {{ result.passed ? "PASS" : "FAIL" }}
                   </span>
                 </div>
                 <div class="result-details">
@@ -320,9 +447,15 @@
                   </div>
                   <div class="result-properties" *ngIf="result.propertyUsed">
                     <span class="property-label">Property:</span>
-                    <span class="property-value">{{ result.propertyUsed }}</span>
-                    <span class="property-label" *ngIf="result.widthMM !== null">Width:</span>
-                    <span class="property-value" *ngIf="result.widthMM !== null">{{ result.widthMM }} mm</span>
+                    <span class="property-value">{{
+                      result.propertyUsed
+                    }}</span>
+                    <span class="property-label" *ngIf="result.widthMM !== null"
+                      >Width:</span
+                    >
+                    <span class="property-value" *ngIf="result.widthMM !== null"
+                      >{{ result.widthMM }} mm</span
+                    >
                   </div>
                   <div class="result-ifc" *ngIf="result.ifcGUID">
                     <span class="ifc-label">IFC GUID:</span>
@@ -333,53 +466,98 @@
             </div>
           </div>
 
-          <!-- Parking Analysis Results for Rule 3 -->
-          <div *ngIf="ruleType === 'rule3' && rule3Data && rule3Data.parkingAnalysis" class="parking-analysis-section">
-            <h3>Parking Analysis Results</h3>
+          <!-- Parking Analysis Results for Rule 2 and Rule 3 -->
+          <div
+            *ngIf="isParkingRule() && rule2Data && rule2Data.parkingAnalysis"
+            class="parking-analysis-section"
+          >
+            <h3>
+              {{
+                isRule2()
+                  ? "Parking Accessibility Analysis"
+                  : "Parking Analysis Results"
+              }}
+            </h3>
             <div class="parking-analysis-card">
               <div class="parking-analysis-grid">
                 <div class="analysis-item">
                   <span class="analysis-label">Total Parking Spaces</span>
-                  <span class="analysis-value">{{ rule3Data.parkingAnalysis.totalParkingSpaces }}</span>
+                  <span class="analysis-value">{{
+                    rule2Data.parkingAnalysis.totalParkingSpaces
+                  }}</span>
                 </div>
                 <div class="analysis-item">
                   <span class="analysis-label">Normal Parking Spaces</span>
-                  <span class="analysis-value">{{ rule3Data.parkingAnalysis.normalParkingSpaces }}</span>
+                  <span class="analysis-value">{{
+                    rule2Data.parkingAnalysis.normalParkingSpaces
+                  }}</span>
                 </div>
                 <div class="analysis-item">
                   <span class="analysis-label">Handicapped Parking Spaces</span>
-                  <span class="analysis-value">{{ rule3Data.parkingAnalysis.handicappedParkingSpaces }}</span>
+                  <span class="analysis-value">{{
+                    rule2Data.parkingAnalysis.handicappedParkingSpaces
+                  }}</span>
                 </div>
                 <div class="analysis-item">
-                  <span class="analysis-label">Required Handicapped Spaces</span>
-                  <span class="analysis-value">{{ rule3Data.parkingAnalysis.requiredHandicappedSpaces }}</span>
+                  <span class="analysis-label"
+                    >Required Handicapped Spaces</span
+                  >
+                  <span class="analysis-value">{{
+                    rule2Data.parkingAnalysis.requiredHandicappedSpaces
+                  }}</span>
                 </div>
                 <div class="analysis-item">
                   <span class="analysis-label">Actual Handicapped Spaces</span>
-                  <span class="analysis-value">{{ rule3Data.parkingAnalysis.actualHandicappedSpaces }}</span>
+                  <span class="analysis-value">{{
+                    rule2Data.parkingAnalysis.actualHandicappedSpaces
+                  }}</span>
                 </div>
                 <div class="analysis-item">
                   <span class="analysis-label">Shortfall</span>
-                  <span class="analysis-value" [class.shortfall]="rule3Data.parkingAnalysis.shortfall > 0">
-                    {{ rule3Data.parkingAnalysis.shortfall }}
+                  <span
+                    class="analysis-value"
+                    [class.shortfall]="rule2Data.parkingAnalysis.shortfall > 0"
+                  >
+                    {{ rule2Data.parkingAnalysis.shortfall }}
                   </span>
                 </div>
               </div>
-              
-              <div class="validation-status" [class.passed]="rule3Data.parkingAnalysis.isValidationPassed" [class.failed]="!rule3Data.parkingAnalysis.isValidationPassed">
-                <i class="fas" [class.fa-check-circle]="rule3Data.parkingAnalysis.isValidationPassed" [class.fa-times-circle]="!rule3Data.parkingAnalysis.isValidationPassed"></i>
-                <span class="status-text">{{ rule3Data.parkingAnalysis.validationMessage }}</span>
+
+              <div
+                class="validation-status"
+                [class.passed]="rule2Data.parkingAnalysis.isValidationPassed"
+                [class.failed]="!rule2Data.parkingAnalysis.isValidationPassed"
+              >
+                <i
+                  class="fas"
+                  [class.fa-check-circle]="
+                    rule2Data.parkingAnalysis.isValidationPassed
+                  "
+                  [class.fa-times-circle]="
+                    !rule2Data.parkingAnalysis.isValidationPassed
+                  "
+                ></i>
+                <span class="status-text">{{
+                  rule2Data.parkingAnalysis.validationMessage
+                }}</span>
               </div>
             </div>
           </div>
 
-          <!-- Modal Footer - Always visible when there are results -->
           <div class="modal-footer">
-            <button *ngIf="highlight" class="cdpd-button" (click)="onCdpdClick()">Highlight the Failed Elements in viewer</button>
-            <button class="close-modal-button" (click)="onClose()">Close</button>
+            <button
+              *ngIf="highlight && ruleType !== 'rule2'"
+              class="cdpd-button"
+              (click)="onCdpdClick()"
+            >
+              Highlight the Failed Elements in viewer
+            </button>
+            <button class="close-modal-button" (click)="onClose()">
+              Close
+            </button>
           </div>
         </div>
       </div>
     </div>
   </div>
-</div> 
+</div>

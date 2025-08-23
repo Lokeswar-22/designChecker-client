@@ -24,7 +24,7 @@
   flex-direction: column;
   overflow: hidden; // Hide overflow on the container
   position: relative; // Ensure proper positioning
-  
+
   // Force the modal to respect height constraints
   min-height: 0;
   max-height: 90vh;
@@ -41,13 +41,13 @@
   flex-shrink: 0; // Prevent header from shrinking
   position: relative; // Ensure proper positioning
   z-index: 10; // Keep header above content
-  
+
   h2 {
     margin: 0;
     font-size: 1.5rem;
     font-weight: 600;
   }
-  
+
   .close-button {
     background: none;
     border: none;
@@ -57,7 +57,7 @@
     padding: 8px;
     border-radius: 50%;
     transition: background-color 0.2s ease;
-    
+
     &:hover {
       background-color: rgba(255, 255, 255, 0.2);
     }
@@ -71,33 +71,35 @@
   padding-bottom: 40px; // Add extra bottom padding to ensure footer is not covered
   min-height: 0; // Allow flex item to shrink
   position: relative; // Ensure proper positioning
-  max-height: calc(90vh - 140px); // Force maximum height (90vh - header - footer)
-  
+  max-height: calc(
+    90vh - 140px
+  ); // Force maximum height (90vh - header - footer)
+
   // Ensure all content is properly contained
   > * {
     max-width: 100%;
     box-sizing: border-box;
   }
-  
+
   // Custom scrollbar styling
   &::-webkit-scrollbar {
     width: 8px;
   }
-  
+
   &::-webkit-scrollbar-track {
     background: #f1f1f1;
     border-radius: 4px;
   }
-  
+
   &::-webkit-scrollbar-thumb {
     background: #c1c1c1;
     border-radius: 4px;
-    
+
     &:hover {
       background: #a8a8a8;
     }
   }
-  
+
   // Firefox scrollbar styling
   scrollbar-width: thin;
   scrollbar-color: #c1c1c1 #f1f1f1;
@@ -108,7 +110,7 @@
   width: 100%;
   height: 100%;
   padding-bottom: 20px; // Add padding to ensure footer is not covered
-  
+
   // Ensure all content sections are properly contained
   > * {
     max-width: 100%;
@@ -125,7 +127,7 @@
   justify-content: center;
   height: 200px;
   text-align: center;
-  
+
   .spinner {
     width: 40px;
     height: 40px;
@@ -135,7 +137,7 @@
     animation: spin 1s linear infinite;
     margin-bottom: 20px;
   }
-  
+
   p {
     color: #6c757d;
     font-size: 16px;
@@ -144,8 +146,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .error-state {
@@ -252,14 +258,14 @@
     margin-bottom: 30px;
     width: 100%;
     box-sizing: border-box;
-    
+
     .summary-card {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       gap: 15px;
       margin-bottom: 20px;
       width: 100%;
-      
+
       .summary-item {
         display: flex;
         flex-direction: column;
@@ -272,30 +278,30 @@
         transition: all 0.2s ease;
         width: 100%;
         box-sizing: border-box;
-        
+
         &:hover {
           transform: translateY(-2px);
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
-        
+
         &.passed {
           border-color: #28a745;
           background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-          
+
           .summary-value {
             color: #155724;
           }
         }
-        
+
         &.failed {
           border-color: #dc3545;
           background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
-          
+
           .summary-value {
             color: #721c24;
           }
         }
-        
+
         .summary-label {
           font-size: 12px;
           color: #6c757d;
@@ -304,7 +310,7 @@
           letter-spacing: 0.5px;
           font-weight: 600;
         }
-        
+
         .summary-value {
           font-size: 24px;
           font-weight: 700;
@@ -319,7 +325,7 @@
       border-radius: 8px;
       padding: 20px;
       margin-bottom: 20px;
-      
+
       h4 {
         margin: 0 0 15px 0;
         color: #1565c0;
@@ -327,12 +333,12 @@
         font-weight: 600;
         text-align: center;
       }
-      
+
       .rule3-summary-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 15px;
-        
+
         .summary-item {
           display: flex;
           flex-direction: column;
@@ -343,12 +349,12 @@
           border-radius: 6px;
           border: 1px solid #90caf9;
           transition: all 0.2s ease;
-          
+
           &:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(33, 150, 243, 0.15);
           }
-          
+
           .summary-label {
             font-size: 11px;
             color: #1976d2;
@@ -357,11 +363,73 @@
             letter-spacing: 0.5px;
             font-weight: 600;
           }
-          
+
           .summary-value {
             font-size: 20px;
             font-weight: 700;
             color: #1565c0;
+          }
+        }
+      }
+    }
+
+    .parking-accessibility-summary-card {
+      background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+      border: 1px solid #4caf50;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+
+      h4 {
+        margin: 0 0 15px 0;
+        color: #2e7d32;
+        font-size: 1.1rem;
+        font-weight: 600;
+        text-align: center;
+      }
+
+      .parking-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+
+        .summary-item {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          padding: 16px;
+          background: white;
+          border-radius: 6px;
+          border: 1px solid #81c784;
+          transition: all 0.2s ease;
+
+          &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15);
+          }
+
+          .summary-label {
+            font-size: 11px;
+            color: #388e3c;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+          }
+
+          .summary-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2e7d32;
+
+            &.compliance-value {
+              color: #2e7d32;
+            }
+
+            &.handicapped-value {
+              color: #1976d2;
+            }
           }
         }
       }
@@ -420,24 +488,24 @@
 
   .results-section {
     margin-top: 24px;
-    
+
     h3 {
       margin: 0 0 16px 0;
       color: #212529;
       font-size: 1.2rem;
       font-weight: 600;
     }
-    
+
     .failure-breakdown-section {
       margin-bottom: 24px;
-      
+
       h4 {
         margin: 0 0 12px 0;
         color: #495057;
         font-size: 1rem;
         font-weight: 600;
       }
-      
+
       .failure-breakdown-list {
         .failure-item {
           background: white;
@@ -445,17 +513,17 @@
           border-radius: 6px;
           padding: 12px 16px;
           margin-bottom: 8px;
-          
+
           .failure-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            
+
             .failure-type-name {
               font-weight: 600;
               color: #212529;
             }
-            
+
             .failure-count {
               color: #dc3545;
               font-weight: 500;
@@ -464,7 +532,7 @@
         }
       }
     }
-    
+
     .validation-results-list {
       .validation-result-item {
         background: white;
@@ -473,36 +541,36 @@
         padding: 16px;
         margin-bottom: 12px;
         transition: all 0.2s ease;
-        
+
         &:hover {
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
-        
+
         &.valid {
           border-left: 4px solid #28a745;
         }
-        
+
         &.invalid {
           border-left: 4px solid #dc3545;
         }
-        
+
         .result-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
           margin-bottom: 12px;
-          
+
           .type-name {
             font-weight: 600;
             color: #212529;
             font-size: 1rem;
           }
-          
+
           .family-name {
             color: #6c757d;
             font-size: 0.9rem;
           }
-          
+
           .status-badge {
             padding: 4px 12px;
             border-radius: 20px;
@@ -510,13 +578,13 @@
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            
+
             &.valid {
               background: #d4edda;
               color: #155724;
               border: 1px solid #c3e6cb;
             }
-            
+
             &.invalid {
               background: #f8d7da;
               color: #721c24;
@@ -524,14 +592,14 @@
             }
           }
         }
-        
+
         .result-details {
           .result-properties {
             display: flex;
             gap: 16px;
             margin-bottom: 12px;
             flex-wrap: wrap;
-            
+
             .property-label {
               color: #6c757d;
               font-size: 0.85rem;
@@ -539,13 +607,13 @@
               text-transform: uppercase;
               letter-spacing: 0.5px;
             }
-            
+
             .property-value {
               color: #495057;
               font-weight: 500;
             }
           }
-          
+
           .element-ids {
             .element-ids-label {
               display: block;
@@ -556,12 +624,12 @@
               letter-spacing: 0.5px;
               margin-bottom: 8px;
             }
-            
+
             .element-ids-list {
               display: flex;
               flex-wrap: wrap;
               gap: 8px;
-              
+
               .element-id {
                 background: #f8f9fa;
                 border: 1px solid #dee2e6;
@@ -576,7 +644,7 @@
         }
       }
     }
-    
+
     .results-list {
       .result-item {
         background: white;
@@ -585,31 +653,31 @@
         padding: 16px;
         margin-bottom: 12px;
         transition: all 0.2s ease;
-        
+
         &:hover {
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
-        
+
         &.passed {
           border-left: 4px solid #28a745;
         }
-        
+
         &.failed {
           border-left: 4px solid #dc3545;
         }
-        
+
         .result-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
           margin-bottom: 12px;
-          
+
           .element-id {
             font-weight: 600;
             color: #212529;
             font-family: monospace;
           }
-          
+
           .status-badge {
             padding: 4px 12px;
             border-radius: 20px;
@@ -617,13 +685,13 @@
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            
+
             &.passed {
               background: #d4edda;
               color: #155724;
               border: 1px solid #c3e6cb;
             }
-            
+
             &.failed {
               background: #f8d7da;
               color: #721c24;
@@ -631,20 +699,20 @@
             }
           }
         }
-        
+
         .result-details {
           .result-message {
             color: #495057;
             margin-bottom: 12px;
             line-height: 1.5;
           }
-          
+
           .result-properties {
             display: flex;
             gap: 16px;
             margin-bottom: 12px;
             flex-wrap: wrap;
-            
+
             .property-label {
               color: #6c757d;
               font-size: 0.85rem;
@@ -652,13 +720,13 @@
               text-transform: uppercase;
               letter-spacing: 0.5px;
             }
-            
+
             .property-value {
               color: #495057;
               font-weight: 500;
             }
           }
-          
+
           .result-ifc {
             .ifc-label {
               color: #6c757d;
@@ -667,7 +735,7 @@
               text-transform: uppercase;
               letter-spacing: 0.5px;
             }
-            
+
             .ifc-value {
               color: #495057;
               font-weight: 500;
@@ -685,27 +753,27 @@
 
   .parking-analysis-section {
     margin-top: 24px;
-    
+
     h3 {
       margin: 0 0 16px 0;
       color: #212529;
       font-size: 1.2rem;
       font-weight: 600;
     }
-    
+
     .parking-analysis-card {
       background: white;
       border: 1px solid #dee2e6;
       border-radius: 8px;
       padding: 20px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      
+
       .parking-analysis-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 16px;
         margin-bottom: 20px;
-        
+
         .analysis-item {
           display: flex;
           flex-direction: column;
@@ -716,12 +784,12 @@
           border-radius: 6px;
           border: 1px solid #e9ecef;
           transition: all 0.2s ease;
-          
+
           &:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
           }
-          
+
           .analysis-label {
             font-size: 0.8rem;
             color: #6c757d;
@@ -731,19 +799,19 @@
             font-weight: 600;
             text-align: center;
           }
-          
+
           .analysis-value {
             font-size: 1.5rem;
             font-weight: 700;
             color: #212529;
-            
+
             &.shortfall {
               color: #dc3545;
             }
           }
         }
       }
-      
+
       .validation-status {
         display: flex;
         align-items: center;
@@ -751,31 +819,31 @@
         padding: 16px;
         border-radius: 6px;
         font-weight: 600;
-        
+
         &.passed {
           background: #d4edda;
           color: #155724;
           border: 1px solid #c3e6cb;
-          
+
           i {
             color: #28a745;
           }
         }
-        
+
         &.failed {
           background: #f8d7da;
           color: #721c24;
           border: 1px solid #f5c6cb;
-          
+
           i {
             color: #dc3545;
           }
         }
-        
+
         i {
           font-size: 1.2rem;
         }
-        
+
         .status-text {
           font-size: 1rem;
           line-height: 1.4;
@@ -797,7 +865,7 @@
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1); // Add shadow above footer
   position: relative; // Ensure proper positioning
   z-index: 10; // Keep footer above content
-  
+
   .cdpd-button {
     background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
     color: white;
@@ -809,17 +877,17 @@
     font-weight: 600;
     transition: all 0.2s ease;
     box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
-    
+
     &:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
     }
-    
+
     &:active {
       transform: translateY(0);
     }
   }
-  
+
   .close-modal-button {
     background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
     color: white;
@@ -831,12 +899,12 @@
     font-weight: 600;
     transition: all 0.2s ease;
     box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
-    
+
     &:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4);
     }
-    
+
     &:active {
       transform: translateY(0);
     }
@@ -875,9 +943,9 @@
     margin-bottom: 8px;
     display: flex;
     align-items: center;
-    
+
     &::before {
-      content: '';
+      content: "";
       width: 4px;
       height: 16px;
       background: #007bff;
@@ -978,7 +1046,7 @@
   div {
     font-size: 14px;
     margin-bottom: 4px;
-    
+
     &:last-child {
       margin-bottom: 0;
     }
@@ -1001,7 +1069,7 @@
   padding: 16px;
   margin-top: 8px;
   overflow-x: auto;
-  
+
   .thresholds-table {
     width: 100%;
     border-collapse: collapse;
@@ -1009,11 +1077,11 @@
     border-radius: 6px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    
+
     thead {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
-      
+
       th {
         padding: 16px 20px;
         text-align: left;
@@ -1022,41 +1090,41 @@
         text-transform: uppercase;
         letter-spacing: 0.5px;
         border: none;
-        
+
         &:first-child {
           border-top-left-radius: 6px;
         }
-        
+
         &:last-child {
           border-top-right-radius: 6px;
         }
       }
     }
-    
+
     tbody {
       tr {
         border-bottom: 1px solid #f1f3f4;
         transition: background-color 0.2s ease;
-        
+
         &:hover {
           background-color: #f8f9fa;
         }
-        
+
         &:last-child {
           border-bottom: none;
         }
-        
+
         td {
           padding: 16px 20px;
           font-size: 0.95rem;
           color: #495057;
           border: none;
-          
+
           &:first-child {
             font-weight: 600;
             color: #212529;
           }
-          
+
           &:last-child {
             font-weight: 700;
             color: #28a745;
@@ -1101,7 +1169,7 @@
       li {
         margin-bottom: 4px;
         line-height: 1.5;
-        
+
         &:last-child {
           margin-bottom: 0;
         }
@@ -1172,20 +1240,20 @@
   margin: 20px 0;
   width: 100%;
   box-sizing: border-box;
-  
+
   h4 {
     margin: 0 0 15px 0;
     color: #495057;
     font-size: 16px;
     font-weight: 600;
   }
-  
+
   .validation-summary-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 15px;
     width: 100%;
-    
+
     .summary-item {
       display: flex;
       flex-direction: column;
@@ -1197,7 +1265,7 @@
       border: 1px solid #dee2e6;
       width: 100%;
       box-sizing: border-box;
-      
+
       .summary-label {
         font-size: 12px;
         color: #6c757d;
@@ -1205,7 +1273,7 @@
         text-transform: uppercase;
         letter-spacing: 0.5px;
       }
-      
+
       .summary-value {
         font-size: 18px;
         font-weight: 700;
@@ -1219,20 +1287,20 @@
   margin: 25px 0;
   width: 100%;
   box-sizing: border-box;
-  
+
   h4 {
     margin: 0 0 15px 0;
     color: #495057;
     font-size: 16px;
     font-weight: 600;
   }
-  
+
   .failure-breakdown-list {
     display: flex;
     flex-direction: column;
     gap: 10px;
     width: 100%;
-    
+
     .failure-item {
       background: #fff3cd;
       border: 1px solid #ffeaa7;
@@ -1240,14 +1308,14 @@
       padding: 15px;
       width: 100%;
       box-sizing: border-box;
-      
+
       .failure-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
         gap: 10px;
-        
+
         .failure-type-name {
           font-weight: 600;
           color: #856404;
@@ -1255,7 +1323,7 @@
           min-width: 200px;
           word-break: break-word;
         }
-        
+
         .failure-count {
           background: #f39c12;
           color: white;
@@ -1276,7 +1344,7 @@
   gap: 15px;
   width: 100%;
   box-sizing: border-box;
-  
+
   .validation-result-item {
     background: white;
     border: 1px solid #dee2e6;
@@ -1285,25 +1353,25 @@
     transition: all 0.2s ease;
     width: 100%;
     box-sizing: border-box;
-    
+
     &.valid {
       border-left: 4px solid #28a745;
-      
+
       .status-badge {
         background: #d4edda;
         color: #155724;
       }
     }
-    
+
     &.invalid {
       border-left: 4px solid #dc3545;
-      
+
       .status-badge {
         background: #f8d7da;
         color: #721c24;
       }
     }
-    
+
     .result-header {
       display: flex;
       justify-content: space-between;
@@ -1311,7 +1379,7 @@
       margin-bottom: 15px;
       flex-wrap: wrap;
       gap: 10px;
-      
+
       .type-name {
         font-weight: 600;
         color: #212529;
@@ -1319,7 +1387,7 @@
         flex: 1;
         min-width: 200px;
       }
-      
+
       .family-name {
         color: #6c757d;
         font-size: 14px;
@@ -1327,7 +1395,7 @@
         flex: 1;
         min-width: 150px;
       }
-      
+
       .status-badge {
         padding: 6px 12px;
         border-radius: 20px;
@@ -1339,26 +1407,26 @@
         flex-shrink: 0;
       }
     }
-    
+
     .result-details {
       .result-properties {
         display: flex;
         flex-wrap: wrap;
         gap: 15px;
         margin-bottom: 15px;
-        
+
         .property-label {
           font-weight: 600;
           color: #495057;
           font-size: 14px;
         }
-        
+
         .property-value {
           color: #212529;
           font-size: 14px;
         }
       }
-      
+
       .element-ids {
         .element-ids-label {
           font-weight: 600;
@@ -1367,12 +1435,12 @@
           display: block;
           margin-bottom: 8px;
         }
-        
+
         .element-ids-list {
           display: flex;
           flex-wrap: wrap;
           gap: 8px;
-          
+
           .element-id {
             background: #e9ecef;
             color: #495057;
@@ -1384,7 +1452,7 @@
         }
       }
     }
-    
+
     &:hover {
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       transform: translateY(-1px);
@@ -1397,66 +1465,66 @@
   .modal-overlay {
     padding: 10px;
   }
-  
+
   .modal-content {
     width: 95%;
     max-height: 95vh; // Use more viewport height on mobile
   }
-  
+
   .modal-header {
     padding: 15px;
-    
+
     h2 {
       font-size: 18px !important;
     }
   }
-  
+
   .modal-body {
     padding: 15px;
   }
-  
+
   .modal-footer {
     padding: 15px;
     flex-direction: column;
-    
+
     .cdpd-button,
     .close-modal-button {
       width: 100%;
       justify-content: center;
     }
   }
-  
+
   .summary-card {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 10px !important;
-    
+
     .summary-item {
       padding: 15px !important;
-      
+
       .summary-value {
         font-size: 20px !important;
       }
     }
   }
-  
+
   .validation-summary-grid {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 10px !important;
   }
-  
+
   .validation-result-item {
     .result-header {
       flex-direction: column !important;
       align-items: flex-start !important;
       gap: 10px !important;
-      
+
       .type-name,
       .family-name {
         flex: none !important;
         margin: 0 !important;
       }
     }
-    
+
     .result-details {
       .result-properties {
         flex-direction: column !important;
@@ -1464,7 +1532,7 @@
       }
     }
   }
-  
+
   .failure-breakdown-list {
     .failure-item {
       .failure-header {
@@ -1481,32 +1549,32 @@
     width: 98%;
     max-height: 98vh;
   }
-  
+
   .summary-card {
     grid-template-columns: 1fr !important;
   }
-  
+
   .validation-summary-grid {
     grid-template-columns: 1fr !important;
   }
-  
+
   .modal-header {
     h2 {
       font-size: 16px !important;
     }
   }
-  
+
   .validation-result-item {
     padding: 15px !important;
-    
+
     .result-header {
       .type-name {
         font-size: 14px !important;
       }
-      
+
       .family-name {
         font-size: 12px !important;
       }
     }
   }
-} 
+}

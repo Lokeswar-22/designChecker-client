@@ -1,0 +1,220 @@
+<div class="modal-overlay" *ngIf="isVisible" (click)="onBackdropClick($event)">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Parking Accessibility Compliance Results</h2>
+      <button class="close-button" (click)="onClose()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Loading State -->
+      <div *ngIf="loading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Analyzing parking accessibility compliance...</p>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="error" class="error-state">
+        <i class="fas fa-exclamation-triangle"></i>
+        <p>{{ error }}</p>
+        <button class="retry-button" (click)="retry.emit()">Retry</button>
+      </div>
+
+      <!-- Results State -->
+      <div *ngIf="!loading && !error && validationData" class="results-state">
+        <!-- Parking Analysis Summary -->
+        <div class="parking-analysis-section">
+          <h3>Parking Analysis Summary</h3>
+          <div class="parking-analysis-card">
+            <div class="parking-analysis-grid">
+              <div class="analysis-item">
+                <span class="analysis-label">Total Parking Spaces</span>
+                <span class="analysis-value">{{
+                  validationData.parkingAnalysis.totalParkingSpaces
+                }}</span>
+              </div>
+              <div class="analysis-item">
+                <span class="analysis-label">Normal Parking Spaces</span>
+                <span class="analysis-value">{{
+                  validationData.parkingAnalysis.normalParkingSpaces
+                }}</span>
+              </div>
+              <div class="analysis-item">
+                <span class="analysis-label">Handicapped Parking Spaces</span>
+                <span class="analysis-value">{{
+                  validationData.parkingAnalysis.handicappedParkingSpaces
+                }}</span>
+              </div>
+              <div class="analysis-item">
+                <span class="analysis-label">Required Handicapped Spaces</span>
+                <span class="analysis-value">{{
+                  validationData.parkingAnalysis.requiredHandicappedSpaces
+                }}</span>
+              </div>
+              <div class="analysis-item">
+                <span class="analysis-label">Actual Handicapped Spaces</span>
+                <span class="analysis-value">{{
+                  validationData.parkingAnalysis.actualHandicappedSpaces
+                }}</span>
+              </div>
+              <div class="analysis-item">
+                <span class="analysis-label">Shortfall</span>
+                <span
+                  class="analysis-value"
+                  [class.shortfall]="
+                    validationData.parkingAnalysis.shortfall > 0
+                  "
+                >
+                  {{ validationData.parkingAnalysis.shortfall }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Validation Status -->
+            <div
+              class="validation-status"
+              [class.passed]="validationData.parkingAnalysis.isValidationPassed"
+              [class.failed]="
+                !validationData.parkingAnalysis.isValidationPassed
+              "
+            >
+              <i
+                class="fas"
+                [class.fa-check-circle]="
+                  validationData.parkingAnalysis.isValidationPassed
+                "
+                [class.fa-times-circle]="
+                  !validationData.parkingAnalysis.isValidationPassed
+                "
+              ></i>
+              <span class="status-text">{{
+                validationData.parkingAnalysis.validationMessage
+              }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Validation Results -->
+        <div class="validation-results-section">
+          <h3>Validation Results</h3>
+          <div class="validation-results-list">
+            <div
+              *ngFor="let result of validationData.validationResults"
+              class="validation-result-item"
+              [class.valid]="result.isValid"
+              [class.invalid]="!result.isValid"
+            >
+              <div class="result-header">
+                <span class="type-name">{{ result.typeName }}</span>
+                <span class="family-name">{{ result.familyName }}</span>
+                <span
+                  class="status-badge"
+                  [class.valid]="result.isValid"
+                  [class.invalid]="!result.isValid"
+                >
+                  {{ result.isValid ? "VALID" : "INVALID" }}
+                </span>
+              </div>
+
+              <div class="result-details">
+                <div class="result-properties">
+                  <span class="property-label">Width:</span>
+                  <span class="property-value">{{ result.widthMm }} mm</span>
+                  <span class="property-label">Type ID:</span>
+                  <span class="property-value">{{ result.typeId }}</span>
+                </div>
+
+                <div
+                  class="element-ids"
+                  *ngIf="result.elementIds && result.elementIds.length > 0"
+                >
+                  <span class="element-ids-label">Element IDs:</span>
+                  <div class="element-ids-list">
+                    <span
+                      *ngFor="let elementId of result.elementIds"
+                      class="element-id"
+                      >{{ elementId }}</span
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Compliance Summary -->
+        <div class="compliance-summary-section">
+          <h3>Compliance Summary</h3>
+          <div class="compliance-summary-card">
+            <div class="compliance-item">
+              <span class="compliance-label">Overall Compliance</span>
+              <span
+                class="compliance-value"
+                [class.compliant]="
+                  validationData.parkingAnalysis.isValidationPassed
+                "
+                [class.non-compliant]="
+                  !validationData.parkingAnalysis.isValidationPassed
+                "
+              >
+                {{
+                  validationData.parkingAnalysis.isValidationPassed
+                    ? "COMPLIANT"
+                    : "NON-COMPLIANT"
+                }}
+              </span>
+            </div>
+
+            <div class="compliance-item">
+              <span class="compliance-label">Handicapped Space Ratio</span>
+              <span class="compliance-value">
+                {{
+                  (
+                    (validationData.parkingAnalysis.handicappedParkingSpaces /
+                      validationData.parkingAnalysis.totalParkingSpaces) *
+                    100
+                  ).toFixed(1)
+                }}%
+              </span>
+            </div>
+
+            <div class="compliance-item">
+              <span class="compliance-label">Requirement Met</span>
+              <span
+                class="compliance-value"
+                [class.met]="validationData.parkingAnalysis.shortfall === 0"
+                [class.not-met]="validationData.parkingAnalysis.shortfall > 0"
+              >
+                {{
+                  validationData.parkingAnalysis.shortfall === 0 ? "YES" : "NO"
+                }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Issues Created Section -->
+        <div *ngIf="issuesCreated > 0" class="issues-created-section">
+          <div class="issues-created-card">
+            <i class="fas fa-exclamation-circle"></i>
+            <span class="issues-created-text"
+              >{{ issuesCreated }} issues are created in ACC</span
+            >
+            <button class="view-issues-button" (click)="onShowAccIssues()">
+              <i class="fas fa-eye"></i>
+              View Issues
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button *ngIf="highlight" class="cdpd-button" (click)="onCdpdClick()">
+        Highlight the Failed Elements in viewer
+      </button>
+      <button class="close-modal-button" (click)="onClose()">Close</button>
+    </div>
+  </div>
+</div>

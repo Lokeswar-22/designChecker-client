@@ -27,7 +27,6 @@ interface RuleInfo {
   };
 }
 
-// New interfaces for the validation results data structure
 interface ValidationResult {
   typeId: string;
   typeName: string;
@@ -46,7 +45,6 @@ interface ValidationSummary {
   uniqueElementIds: number;
   duplicateElementIds: number;
   perfectMatchesFound: number;
-  // New properties for enhanced summary data
   totalInstancesChecked?: number;
   compliancePercent?: number;
   handicappedPercentOfTotal?: number;
@@ -62,7 +60,6 @@ interface ValidationResponse {
   failureBreakdown: FailureBreakdown;
 }
 
-// New interfaces for Rule3 parking data
 interface ParkingAnalysis {
   totalParkingSpaces: number;
   normalParkingSpaces: number;
@@ -105,18 +102,14 @@ export class RuleModalComponent implements OnInit {
 
   loading = false;
   ruleData: RuleCheckResponse | null = null;
-  validationData: ValidationResponse | null = null; // New property for validation data
-  rule3Data: Rule3Response | null = null; // New property for Rule3 parking data
+  validationData: ValidationResponse | null = null;
+  rule2Data: Rule3Response | null = null;
   error: string = '';
   urn: string = '';
 
-  // New acknowledgement state
   showAcknowledgement = true;
-
-  // Highlight state for CDPD button
   highlight = false;
 
-  // Rule information for acknowledgement popup
   ruleInfo: RuleInfo = {
     title: '',
     description: '',
@@ -146,14 +139,10 @@ export class RuleModalComponent implements OnInit {
     if (projectName && this.accUserId) {
       this.ruleService.getProjectById(this.accUserId, projectName).subscribe({
         next: (response) => {
-          console.log('Project by ID API response:', response);
           this.projectId = response.projectId.split('.')[1];
-          console.log('PROJECT ID', this.projectId);
-
-          // Don't auto-check rule, wait for user acknowledgement
         },
-        error: (error) => {
-          console.error('Error calling project by ID API:', error);
+        error: () => {
+          this.error = 'Error calling project by ID API.';
         },
       });
     }
@@ -164,41 +153,24 @@ export class RuleModalComponent implements OnInit {
           const alternativeIdentifiers = JSON.parse(
             decodeURIComponent(queryParams['alternativeIdentifiers'])
           );
-          console.log(
-            'ElementGroupDetailsComponent: alternativeIdentifiers from query params:',
-            alternativeIdentifiers
-          );
           this.urn = alternativeIdentifiers.fileUrn;
-        } catch (error) {
-          console.error(
-            'ElementGroupDetailsComponent: Error parsing alternativeIdentifiers:',
-            error
-          );
+        } catch {
+          this.error = 'Error parsing alternativeIdentifiers.';
         }
-      } else {
-        console.log(
-          'ElementGroupDetailsComponent: No alternativeIdentifiers in query params'
-        );
       }
     });
   }
 
   ngOnChanges() {
-    console.log('ngOnChanges called - isVisible:', this.isVisible);
-
-    // Reset to acknowledgement state when modal becomes visible
     if (this.isVisible) {
-      console.log('Modal is visible, resetting state');
       this.showAcknowledgement = true;
       this.loading = false;
       this.error = '';
       this.ruleData = null;
-      this.validationData = null; // Reset validation data
-      this.rule3Data = null; // Reset Rule3 data
-      this.highlight = false; // Reset highlight state
-      this.setupRuleInfo(); // Update rule info when ruleType changes
-
-      // Clear any existing failed elements visuals when modal opens
+      this.validationData = null;
+      this.rule2Data = null;
+      this.highlight = false;
+      this.setupRuleInfo();
       this.viewerService.clearFailedElementsVisuals();
       this.viewerService.clearProcessedRevitIds();
     }
@@ -214,7 +186,7 @@ export class RuleModalComponent implements OnInit {
           executionInfo:
             '1) Filter all door INSTANCES from the AEC Data Model.\n' +
             '2) For each instance, attempt to read its "Width" parameter.\n' +
-            '3) If the instance has no width, look up the instance’s Family/Type and read the Type "Width".\n' +
+            '3) If the instance has no width, look up the instance`s Family/Type and read the Type "Width".\n' +
             '4) If a width is found (from instance or type), check width ≥ 850 mm → PASS, else FAIL.\n' +
             '5) If no width is found in either place, mark as FAIL.\n' +
             '6) Create ACC issues for all failed elements.',
@@ -242,7 +214,7 @@ export class RuleModalComponent implements OnInit {
             maximum: null,
             unit: 'handicapped spaces required',
             requirement:
-              '≤50: 1 required, 51-100: 2 required, 101-300: 3 required, 301-500: 4 required, >500: 4 + (additional÷200)',
+              '1-50: 1 required, 51-100: 2 required, 101-300: 3 required, 301-500: 4 required, >500: 4 + (additional÷200)',
           },
           thresholdsTable: {
             headers: [
@@ -250,10 +222,10 @@ export class RuleModalComponent implements OnInit {
               'Number of accessible lots',
             ],
             rows: [
-              [50, 1],
-              [100, 2],
-              [300, 3],
-              [500, 4],
+              ['0 to 50', 1],
+              ['more than 50 to 100', 2],
+              ['more than 100 to 300', 3],
+              ['Exceeding 300', '4 + 1 for every additional 200'],
             ],
           },
         };
@@ -261,45 +233,45 @@ export class RuleModalComponent implements OnInit {
 
       case 'rule3':
         this.ruleInfo = {
-          title: 'Rule 3 - Ramp width Check',
+          title: 'Rule 3 - Ramp Width Check',
           description:
-            'Ensures staircases with 5 or more risers have handrails positioned within the accessible height range.',
+            'Ensures ramps have a minimum width of 1200mm for accessibility compliance.',
           executionInfo:
-            'Fetches stair elements (category = Stairs). Uses Actual Number of Risers, Riser Height, and Tread Depth to confirm rule applicability. Attempts to validate Handrail Height (mm). If missing, flags Fail with context.',
-          category: 'Stairs',
+            'Fetches ramp elements and validates their width. Checks if the ramp width meets the minimum requirement of 1200mm for accessibility standards.',
+          category: 'Ramps',
           thresholds: {
-            minimum: 800,
-            maximum: 1000,
-            unit: 'mm',
-            requirement:
-              'Handrail height must be between 800 mm and 1000 mm, measured vertically from the pitch line',
-          },
-        };
-        break;
-      case 'rule4':
-        this.ruleInfo = {
-          title: 'Rule 4 - Staircase Riser Height',
-          description: 'Validates that Stairs have riser height.',
-          executionInfo:
-            'Fetches wall elements (category = Walls) as proxy due to missing washroom elements. Uses Width property with heuristic scaling to infer clear dimension. Checks compliance with minimum width requirement and flags missing transfer zone data.',
-          category: 'Sanitary Provision',
-          thresholds: {
-            minimum: {
-              clearWidth: 1750,
-              transferZone: { width: 900, depth: 1500 },
-            },
+            minimum: 1200,
             maximum: null,
             unit: 'mm',
             requirement:
-              'Clear width ≥ 1750 mm and adjacent transfer space ≥ 900 mm x 1500 mm',
+              'Ramp width must be at least 1200mm to meet accessibility requirements',
           },
         };
         break;
+
+      case 'rule4':
+        this.ruleInfo = {
+          title: 'Rule 4 - Staircase Riser Height',
+          description:
+            'Validates that staircase riser height does not exceed the maximum allowed height for safety and accessibility.',
+          executionInfo:
+            'Fetches stair elements (category = Stairs) and checks the riser height. Validates that the maximum riser height is less than 175mm to ensure safe and accessible stair design.',
+          category: 'Stairs',
+          thresholds: {
+            minimum: null,
+            maximum: 175,
+            unit: 'mm',
+            requirement:
+              'Staircase riser height must not exceed 175mm for safety and accessibility compliance',
+          },
+        };
+        break;
+
       case 'rule5':
         this.ruleInfo = {
-          title: 'Room Area and Perimeter Validation',
+          title: 'Rule 5 - Lift length and width  validation',
           description:
-            'Validates rooms assumed as rectangles by calculating length and width from area and perimeter. Ensures minimum width of 1200 mm and minimum length of 1500 mm to comply with accessibility standards. Flags failures with detailed reasons tied to specific room elements.',
+            'Validates lifts assumed as rectangles by calculating length and width from area and perimeter. Ensures minimum width of 1200 mm and minimum length of 1500 mm to comply with accessibility standards. Flags failures with detailed reasons tied to specific room elements.',
           executionInfo:
             'Fetches room instances with area and perimeter properties. Calculates rectangle dimensions using geometric formulas from area/perimeter data. Validates room dimensions against accessibility thresholds. Reports failures with element IDs for remediation.',
           category: 'Accessibility / Space Validation',
@@ -308,7 +280,7 @@ export class RuleModalComponent implements OnInit {
             maximum: 1500,
             unit: 'mm',
             requirement:
-              'Rooms must have a minimum clear width of 1200 mm and minimum length of 1500 mm as derived from area and perimeter to ensure accessibility compliance.',
+              'Lifts must have a minimum clear width of 1200 mm and minimum length of 1500 mm as derived from area and perimeter to ensure accessibility compliance.',
           },
         };
         break;
@@ -332,13 +304,11 @@ export class RuleModalComponent implements OnInit {
   }
 
   onContinue() {
-    console.log('Continue button clicked!');
     this.showAcknowledgement = false;
     this.checkRule();
   }
 
   onCancel() {
-    console.log('Cancel button clicked!');
     this.onClose();
   }
 
@@ -346,9 +316,8 @@ export class RuleModalComponent implements OnInit {
     this.loading = true;
     this.error = '';
     this.ruleData = null;
-    this.highlight = false; // Reset highlight state
+    this.highlight = false;
 
-    // Clear failed elements visuals and processed Revit IDs before starting new rule execution
     this.viewerService.clearFailedElementsVisuals();
     this.viewerService.clearProcessedRevitIds();
 
@@ -370,65 +339,31 @@ export class RuleModalComponent implements OnInit {
       .checkRule1(this.elementGroupId, this.accUserId, this.projectId!)
       .subscribe({
         next: async (response: RuleCheckResponse) => {
-          console.log('Rule 1 check response:', response);
           this.ruleData = response;
 
-          // Handle the new validation data structure
           if (response && response.validationResults) {
             try {
-              console.log('Processing validation data structure:', response);
               this.validationData = {
                 validationResults: response.validationResults,
-                summary: response.summary as any, // Type assertion for the summary
+                summary: response.summary as any,
                 failureBreakdown: response.failureBreakdown,
               };
 
-              console.log('Set validationData:', this.validationData);
-              console.log(
-                'Validation results count:',
-                this.validationData.validationResults?.length
-              );
-              console.log('hasEmptyResults result:', this.hasEmptyResults());
-
-              // Validate the data structure
               if (
                 !this.validationData.validationResults ||
                 !this.validationData.summary
               ) {
-                console.warn(
-                  'Validation data structure is incomplete, falling back to legacy format'
-                );
                 this.validationData = null;
               }
-            } catch (error) {
-              console.error('Error parsing validation data:', error);
+            } catch {
               this.validationData = null;
             }
-          } else {
-            console.log(
-              'No validationResults found in response, using legacy format'
-            );
           }
 
           this.loading = false;
-
-          // Log empty results check
-          if (this.hasEmptyResults()) {
-            console.log('Rule 1: No elements found to validate');
-          }
-
-          // Process failed elements after rule check is complete
           await this.getFailedElements();
-
-          console.log('Rule check completed. Final state:');
-          console.log('- validationData:', this.validationData);
-          console.log('- hasEmptyResults():', this.hasEmptyResults());
-          console.log('- getTotalCount():', this.getTotalCount());
-          console.log('- getPassedCount():', this.getPassedCount());
-          console.log('- getFailedCount():', this.getFailedCount());
         },
-        error: (error: any) => {
-          console.error('Error checking rule 1:', error);
+        error: () => {
           this.error = 'Failed to check rule 1. Please try again.';
           this.loading = false;
         },
@@ -440,65 +375,33 @@ export class RuleModalComponent implements OnInit {
       .checkRule2(this.elementGroupId, this.accUserId, this.projectId!)
       .subscribe({
         next: async (response: RuleCheckResponse) => {
-          console.log('Rule 2 check response:', response);
           this.ruleData = response;
 
-          // Handle the new validation data structure
           if (response && response.validationResults) {
+            this.rule2Data = response as unknown as Rule3Response;
+
             try {
-              console.log('Processing validation data structure:', response);
               this.validationData = {
                 validationResults: response.validationResults,
-                summary: response.summary as any, // Type assertion for the summary
+                summary: response.summary as any,
                 failureBreakdown: response.failureBreakdown,
               };
 
-              console.log('Set validationData:', this.validationData);
-              console.log(
-                'Validation results count:',
-                this.validationData.validationResults?.length
-              );
-              console.log('hasEmptyResults result:', this.hasEmptyResults());
-
-              // Validate the data structure
               if (
                 !this.validationData.validationResults ||
                 !this.validationData.summary
               ) {
-                console.warn(
-                  'Validation data structure is incomplete, falling back to legacy format'
-                );
                 this.validationData = null;
               }
-            } catch (error) {
-              console.error('Error parsing validation data:', error);
+            } catch {
               this.validationData = null;
             }
-          } else {
-            console.log(
-              'No validationResults found in response, using legacy format'
-            );
           }
 
           this.loading = false;
-
-          // Log empty results check
-          if (this.hasEmptyResults()) {
-            console.log('Rule 1: No elements found to validate');
-          }
-
-          // Process failed elements after rule check is complete
           await this.getFailedElements();
-
-          console.log('Rule check completed. Final state:');
-          console.log('- validationData:', this.validationData);
-          console.log('- hasEmptyResults():', this.hasEmptyResults());
-          console.log('- getTotalCount():', this.getTotalCount());
-          console.log('- getPassedCount():', this.getPassedCount());
-          console.log('- getFailedCount():', this.getFailedCount());
         },
-        error: (error: any) => {
-          console.error('Error checking rule 1:', error);
+        error: () => {
           this.error = 'Failed to check rule 1. Please try again.';
           this.loading = false;
         },
@@ -516,83 +419,38 @@ export class RuleModalComponent implements OnInit {
       )
       .subscribe({
         next: async (response: RuleCheckResponse) => {
-          console.log('Rule 3 check response:', response);
           this.ruleData = response;
 
-          // Handle Rule3 parking data structure
           if (
             response &&
             response.validationResults &&
             (response as any).parkingAnalysis
           ) {
             try {
-              console.log('Processing Rule3 parking data structure:', response);
-              this.rule3Data = response as unknown as Rule3Response;
-
-              console.log('Set rule3Data:', this.rule3Data);
-              console.log('Parking analysis:', this.rule3Data.parkingAnalysis);
-              console.log(
-                'Normal parking breakdown:',
-                this.rule3Data.normalParkingBreakdown
-              );
-              console.log(
-                'Handicapped parking breakdown:',
-                this.rule3Data.handicappedParkingBreakdown
-              );
-
-              // Also set validationData for compatibility
               this.validationData = {
                 validationResults: response.validationResults,
                 summary: response.summary as any,
                 failureBreakdown: response.failureBreakdown,
               };
-            } catch (error) {
-              console.error('Error parsing Rule3 parking data:', error);
-              this.rule3Data = null;
+            } catch {
               this.validationData = null;
             }
           } else if (response && response.validationResults) {
-            // Handle standard validation data structure
             try {
-              console.log(
-                'Processing standard validation data structure:',
-                response
-              );
               this.validationData = {
                 validationResults: response.validationResults,
                 summary: response.summary as any,
                 failureBreakdown: response.failureBreakdown,
               };
-            } catch (error) {
-              console.error('Error parsing validation data:', error);
+            } catch {
               this.validationData = null;
             }
-          } else {
-            console.log(
-              'No validationResults found in response, using legacy format'
-            );
           }
 
           this.loading = false;
-
-          // Log empty results check
-          if (this.hasEmptyResults()) {
-            console.log('Rule 3: No elements found to validate');
-          }
-
-          // Process failed elements after rule check is complete
           await this.getFailedElements();
-
-          console.log('Rule 3 check completed. Final state:');
-          console.log('- rule3Data:', this.rule3Data);
-          console.log('- validationData:', this.validationData);
-          console.log('- hasEmptyResults():', this.hasEmptyResults());
-          console.log('- getTotalCount():', this.getTotalCount());
-          console.log('- getPassedCount():', this.getPassedCount());
-          console.log('- getFailedCount():', this.getFailedCount());
         },
-        error: (error: any) => {
-          console.error('Error checking rule 3:', error);
+        error: () => {
           this.error = 'Failed to check rule 3. Please try again.';
           this.loading = false;
         },
@@ -604,65 +462,31 @@ export class RuleModalComponent implements OnInit {
       .checkRule4(this.elementGroupId, this.accUserId, this.projectId!)
       .subscribe({
         next: async (response: RuleCheckResponse) => {
-          console.log('Rule 2 check response:', response);
           this.ruleData = response;
 
-          // Handle the new validation data structure
           if (response && response.validationResults) {
             try {
-              console.log('Processing validation data structure:', response);
               this.validationData = {
                 validationResults: response.validationResults,
-                summary: response.summary as any, // Type assertion for the summary
+                summary: response.summary as any,
                 failureBreakdown: response.failureBreakdown,
               };
 
-              console.log('Set validationData:', this.validationData);
-              console.log(
-                'Validation results count:',
-                this.validationData.validationResults?.length
-              );
-              console.log('hasEmptyResults result:', this.hasEmptyResults());
-
-              // Validate the data structure
               if (
                 !this.validationData.validationResults ||
                 !this.validationData.summary
               ) {
-                console.warn(
-                  'Validation data structure is incomplete, falling back to legacy format'
-                );
                 this.validationData = null;
               }
-            } catch (error) {
-              console.error('Error parsing validation data:', error);
+            } catch {
               this.validationData = null;
             }
-          } else {
-            console.log(
-              'No validationResults found in response, using legacy format'
-            );
           }
 
           this.loading = false;
-
-          // Log empty results check
-          if (this.hasEmptyResults()) {
-            console.log('Rule 1: No elements found to validate');
-          }
-
-          // Process failed elements after rule check is complete
           await this.getFailedElements();
-
-          console.log('Rule check completed. Final state:');
-          console.log('- validationData:', this.validationData);
-          console.log('- hasEmptyResults():', this.hasEmptyResults());
-          console.log('- getTotalCount():', this.getTotalCount());
-          console.log('- getPassedCount():', this.getPassedCount());
-          console.log('- getFailedCount():', this.getFailedCount());
         },
-        error: (error: any) => {
-          console.error('Error checking rule 1:', error);
+        error: () => {
           this.error = 'Failed to check rule 1. Please try again.';
           this.loading = false;
         },
@@ -674,65 +498,31 @@ export class RuleModalComponent implements OnInit {
       .checkRule5(this.elementGroupId, this.accUserId, this.projectId!)
       .subscribe({
         next: async (response: RuleCheckResponse) => {
-          console.log('Rule 2 check response:', response);
           this.ruleData = response;
 
-          // Handle the new validation data structure
           if (response && response.validationResults) {
             try {
-              console.log('Processing validation data structure:', response);
               this.validationData = {
                 validationResults: response.validationResults,
-                summary: response.summary as any, // Type assertion for the summary
+                summary: response.summary as any,
                 failureBreakdown: response.failureBreakdown,
               };
 
-              console.log('Set validationData:', this.validationData);
-              console.log(
-                'Validation results count:',
-                this.validationData.validationResults?.length
-              );
-              console.log('hasEmptyResults result:', this.hasEmptyResults());
-
-              // Validate the data structure
               if (
                 !this.validationData.validationResults ||
                 !this.validationData.summary
               ) {
-                console.warn(
-                  'Validation data structure is incomplete, falling back to legacy format'
-                );
                 this.validationData = null;
               }
-            } catch (error) {
-              console.error('Error parsing validation data:', error);
+            } catch {
               this.validationData = null;
             }
-          } else {
-            console.log(
-              'No validationResults found in response, using legacy format'
-            );
           }
 
           this.loading = false;
-
-          // Log empty results check
-          if (this.hasEmptyResults()) {
-            console.log('Rule 1: No elements found to validate');
-          }
-
-          // Process failed elements after rule check is complete
           await this.getFailedElements();
-
-          console.log('Rule check completed. Final state:');
-          console.log('- validationData:', this.validationData);
-          console.log('- hasEmptyResults():', this.hasEmptyResults());
-          console.log('- getTotalCount():', this.getTotalCount());
-          console.log('- getPassedCount():', this.getPassedCount());
-          console.log('- getFailedCount():', this.getFailedCount());
         },
-        error: (error: any) => {
-          console.error('Error checking rule 1:', error);
+        error: () => {
           this.error = 'Failed to check rule 1. Please try again.';
           this.loading = false;
         },
@@ -740,15 +530,13 @@ export class RuleModalComponent implements OnInit {
   }
 
   onClose() {
-    // Clear failed elements visuals and processed Revit IDs when modal is closed
     this.viewerService.clearFailedElementsVisuals();
     this.viewerService.clearProcessedRevitIds();
-    this.highlight = false; // Reset highlight state
+    this.highlight = false;
     this.close.emit();
   }
 
   async onCdpdClick() {
-    console.log('returned to viewer');
     this.viewerService.highlightFailedElements();
     this.onClose();
   }
@@ -760,126 +548,90 @@ export class RuleModalComponent implements OnInit {
   }
 
   getPassedCount(): number {
-    console.log('getPassedCount called');
-    console.log('validationData exists:', !!this.validationData);
-    console.log('rule3Data exists:', !!this.rule3Data);
-
-    // Prioritize summary data from JSON response
     if (
       this.validationData &&
       this.validationData.summary &&
       this.validationData.summary.totalInstancesChecked !== undefined &&
       this.validationData.summary.totalFailedElementInstances !== undefined
     ) {
-      const count =
+      return (
         this.validationData.summary.totalInstancesChecked -
-        this.validationData.summary.totalFailedElementInstances;
-      console.log('Summary calculated passed count:', count);
-      return count;
+        this.validationData.summary.totalFailedElementInstances
+      );
     }
 
-    if (this.rule3Data && this.ruleType === 'rule3') {
-      // For Rule3, passed count is the total parking spaces since all are valid
-      const count = this.rule3Data.parkingAnalysis?.totalParkingSpaces || 0;
-      console.log('Rule3 parking passed count:', count);
-      return count;
+    if (this.rule2Data && this.ruleType === 'rule2') {
+      // For Rule2, passed count is the total parking spaces if validation passed
+      if (this.rule2Data.parkingAnalysis?.isValidationPassed) {
+        return this.rule2Data.parkingAnalysis.totalParkingSpaces || 0;
+      }
+      return 0;
     } else if (this.validationData) {
-      const count =
+      return (
         this.validationData.summary.totalTypesChecked -
-        this.validationData.summary.failedValidations;
-      console.log('Validation data passed count:', count);
-      return count;
+        this.validationData.summary.failedValidations
+      );
     } else if (this.ruleType === 'rule1') {
-      const count = this.ruleData?.result?.summary?.totalPassed || 0;
-      console.log('Legacy rule1 passed count:', count);
-      return count;
+      return this.ruleData?.result?.summary?.totalPassed || 0;
     } else {
-      const count = this.ruleData?.summary?.totalPassed || 0;
-      console.log('Legacy other rule passed count:', count);
-      return count;
+      return this.ruleData?.summary?.totalPassed || 0;
     }
   }
 
   getFailedCount(): number {
-    console.log('getFailedCount called');
-    console.log('validationData exists:', !!this.validationData);
-    console.log('rule3Data exists:', !!this.rule3Data);
-
-    // Prioritize summary data from JSON response
     if (
       this.validationData &&
       this.validationData.summary &&
       this.validationData.summary.totalFailedElementInstances !== undefined
     ) {
-      const count = this.validationData.summary.totalFailedElementInstances;
-      console.log('Summary totalFailedElementInstances count:', count);
-      return count;
+      return this.validationData.summary.totalFailedElementInstances;
     }
 
-    if (this.rule3Data && this.ruleType === 'rule3') {
-      // For Rule3, failed count is 0 since all parking spaces are valid
-      const count = 0;
-      console.log('Rule3 parking failed count:', count);
-      return count;
+    if (this.rule2Data && this.ruleType === 'rule2') {
+      // For Rule2, failed count is 0 if validation passed, otherwise total spaces
+      if (this.rule2Data.parkingAnalysis?.isValidationPassed) {
+        return 0;
+      }
+      return this.rule2Data.parkingAnalysis?.totalParkingSpaces || 0;
     } else if (this.validationData) {
-      const count = this.validationData.summary.failedValidations;
-      console.log('Validation data failed count:', count);
-      return count;
+      return this.validationData.summary.failedValidations;
     } else if (this.ruleType === 'rule1') {
-      const count = this.ruleData?.result?.summary?.totalFailed || 0;
-      console.log('Legacy rule1 failed count:', count);
-      return count;
+      return this.ruleData?.result?.summary?.totalFailed || 0;
     } else {
-      const count = this.ruleData?.summary?.totalFailed || 0;
-      console.log('Legacy other rule failed count:', count);
-      return count;
+      return this.ruleData?.summary?.totalFailed || 0;
     }
   }
 
   getTotalCount(): number {
-    console.log('getTotalCount called');
-    console.log('validationData exists:', !!this.validationData);
-    console.log('rule3Data exists:', !!this.rule3Data);
-
-    // Prioritize summary data from JSON response
     if (
       this.validationData &&
       this.validationData.summary &&
       this.validationData.summary.totalInstancesChecked
     ) {
-      const count = this.validationData.summary.totalInstancesChecked;
-      console.log('Summary totalInstancesChecked count:', count);
-      return count;
+      return this.validationData.summary.totalInstancesChecked;
     }
 
-    if (this.rule3Data && this.ruleType === 'rule3') {
-      const count = this.rule3Data.parkingAnalysis?.totalParkingSpaces || 0;
-      console.log('Rule3 parking total count:', count);
-      return count;
+    if (
+      this.rule2Data &&
+      (this.ruleType === 'rule2' || this.ruleType === 'rule3')
+    ) {
+      return this.rule2Data.parkingAnalysis?.totalParkingSpaces || 0;
     } else if (this.validationData) {
-      const count = this.validationData.summary?.totalTypesChecked || 0;
-      console.log('Validation data total count:', count);
-      return count;
+      return this.validationData.summary?.totalTypesChecked || 0;
     } else if (this.ruleType === 'rule1') {
-      const count = this.ruleData?.result?.summary?.totalElementsChecked || 0;
-      console.log('Legacy rule1 total count:', count);
-      return count;
+      return this.ruleData?.result?.summary?.totalElementsChecked || 0;
     } else {
-      const count = this.ruleData?.summary?.totalElementsChecked || 0;
-      console.log('Legacy other rule total count:', count);
-      return count;
+      return this.ruleData?.summary?.totalElementsChecked || 0;
     }
   }
 
   getPassPercentage(): number {
-    // For Rule 3, use the old calculation method
-    if (this.ruleType === 'rule3') {
+    if (this.ruleType === 'rule2' || this.ruleType === 'rule3') {
       const total = this.getTotalCount();
       if (total === 0) return 0;
       return Math.round((this.getPassedCount() / total) * 100);
     }
 
-    // For other rules, use summary data from JSON response for more accurate calculation
     if (this.validationData && this.validationData.summary) {
       const totalInstancesChecked =
         this.validationData.summary.totalInstancesChecked || 0;
@@ -893,29 +645,56 @@ export class RuleModalComponent implements OnInit {
       return Math.round((passedInstances / totalInstancesChecked) * 100);
     }
 
-    // Fallback to existing calculation method
     const total = this.getTotalCount();
     if (total === 0) return 0;
     return Math.round((this.getPassedCount() / total) * 100);
   }
 
-  // New method for Rule 3 compliance percentage from summary
   getCompliancePercentage(): number {
-    if (this.rule3Data && this.ruleType === 'rule3' && this.rule3Data.summary) {
-      return this.rule3Data.summary.compliancePercent || 0;
+    if (
+      this.rule2Data &&
+      (this.ruleType === 'rule2' || this.ruleType === 'rule3')
+    ) {
+      if (this.rule2Data.parkingAnalysis) {
+        // Calculate compliance percentage based on parking analysis
+        const {
+          totalParkingSpaces,
+          handicappedParkingSpaces,
+          requiredHandicappedSpaces,
+        } = this.rule2Data.parkingAnalysis;
+        if (totalParkingSpaces > 0) {
+          const compliance =
+            (handicappedParkingSpaces / requiredHandicappedSpaces) * 100;
+          return Math.min(compliance, 100); // Cap at 100%
+        }
+      }
+      if (this.rule2Data.summary) {
+        return this.rule2Data.summary.compliancePercent || 0;
+      }
     }
     return 0;
   }
 
-  // New method for Rule 3 handicapped percentage from summary
   getHandicappedPercentage(): number {
-    if (this.rule3Data && this.ruleType === 'rule3' && this.rule3Data.summary) {
-      return this.rule3Data.summary.handicappedPercentOfTotal || 0;
+    if (
+      this.rule2Data &&
+      (this.ruleType === 'rule2' || this.ruleType === 'rule3')
+    ) {
+      if (this.rule2Data.parkingAnalysis) {
+        // Calculate handicapped percentage from parking analysis
+        const { totalParkingSpaces, handicappedParkingSpaces } =
+          this.rule2Data.parkingAnalysis;
+        if (totalParkingSpaces > 0) {
+          return (handicappedParkingSpaces / totalParkingSpaces) * 100;
+        }
+      }
+      if (this.rule2Data.summary) {
+        return this.rule2Data.summary.handicappedPercentOfTotal || 0;
+      }
     }
     return 0;
   }
 
-  // Helper methods for Rule 3 parking table display
   getParkingRangeText(index: number): string {
     if (this.ruleType !== 'rule3' || !this.ruleInfo.thresholdsTable) return '';
 
@@ -947,25 +726,26 @@ export class RuleModalComponent implements OnInit {
   }
 
   getIssuesCreated(): number {
-    if (this.rule3Data && this.ruleType === 'rule3') {
-      // For Rule3, return 0 since all parking spaces are valid (no issues to create)
+    if (
+      this.rule2Data &&
+      (this.ruleType === 'rule2' || this.ruleType === 'rule3')
+    ) {
       return 0;
     }
     return this.ruleData?.issuesCreated || 0;
   }
 
   getResults(): any[] {
-    console.log('getResults called');
-    console.log('validationData exists:', !!this.validationData);
-    console.log('rule3Data exists:', !!this.rule3Data);
-
-    if (this.rule3Data && this.ruleType === 'rule3') {
-      // For Rule3, return parking breakdown data
+    if (this.rule2Data && this.ruleType === 'rule2') {
+      // For Rule2 only, return empty array to hide detailed results
+      // since the parking analysis section already shows all the information
+      return [];
+    } else if (this.rule2Data && this.ruleType === 'rule3') {
+      // For Rule3, return parking breakdown results
       const results: any[] = [];
 
-      // Add normal parking results
-      if (this.rule3Data.normalParkingBreakdown) {
-        Object.entries(this.rule3Data.normalParkingBreakdown).forEach(
+      if (this.rule2Data.normalParkingBreakdown) {
+        Object.entries(this.rule2Data.normalParkingBreakdown).forEach(
           ([type, parking]) => {
             results.push({
               type: 'Normal Parking',
@@ -978,9 +758,8 @@ export class RuleModalComponent implements OnInit {
         );
       }
 
-      // Add handicapped parking results
-      if (this.rule3Data.handicappedParkingBreakdown) {
-        Object.entries(this.rule3Data.handicappedParkingBreakdown).forEach(
+      if (this.rule2Data.handicappedParkingBreakdown) {
+        Object.entries(this.rule2Data.handicappedParkingBreakdown).forEach(
           ([type, parking]) => {
             results.push({
               type: 'Handicapped Parking',
@@ -993,79 +772,66 @@ export class RuleModalComponent implements OnInit {
         );
       }
 
-      console.log('Returning Rule3 parking results:', results);
       return results;
     } else if (this.validationData) {
-      console.log(
-        'Returning validation results:',
-        this.validationData.validationResults
-      );
       return this.validationData.validationResults || [];
     } else if (this.ruleType === 'rule1') {
-      console.log(
-        'Returning legacy rule1 results:',
-        this.ruleData?.result?.results
-      );
       return this.ruleData?.result?.results || [];
     } else {
-      console.log(
-        'Returning legacy other rule results:',
-        this.ruleData?.results
-      );
       return this.ruleData?.results || [];
     }
   }
 
   getValidationResults(): ValidationResult[] {
-    console.log('getValidationResults called');
-    console.log('validationData:', this.validationData);
-    const results = this.validationData?.validationResults || [];
-    console.log('Returning validation results:', results);
-    return results;
+    return this.validationData?.validationResults || [];
   }
 
   getSummary(): ValidationSummary | null {
-    console.log('getSummary called');
-    console.log('validationData:', this.validationData);
-    const summary = this.validationData?.summary || null;
-    console.log('Returning summary:', summary);
-    return summary;
+    return this.validationData?.summary || null;
   }
 
   getFailureBreakdown(): FailureBreakdown | null {
-    console.log('getFailureBreakdown called');
-    console.log('validationData:', this.validationData);
-    const breakdown = this.validationData?.failureBreakdown || null;
-    console.log('Returning failure breakdown:', breakdown);
-    return breakdown;
+    return this.validationData?.failureBreakdown || null;
   }
 
-  // Rule3-specific methods for parking data
   getParkingAnalysis(): ParkingAnalysis | null {
-    return this.rule3Data?.parkingAnalysis || null;
+    return this.rule2Data?.parkingAnalysis || null;
   }
 
   getNormalParkingBreakdown(): ParkingBreakdown | null {
-    return this.rule3Data?.normalParkingBreakdown || null;
+    return this.rule2Data?.normalParkingBreakdown || null;
   }
 
   getHandicappedParkingBreakdown(): ParkingBreakdown | null {
-    return this.rule3Data?.handicappedParkingBreakdown || null;
+    return this.rule2Data?.handicappedParkingBreakdown || null;
   }
 
   isRule3(): boolean {
     return this.ruleType === 'rule3';
   }
 
+  isRule2(): boolean {
+    return this.ruleType === 'rule2';
+  }
+
+  isParkingRule(): boolean {
+    return this.ruleType === 'rule2' || this.ruleType === 'rule3';
+  }
+
   hasParkingData(): boolean {
     return (
-      this.rule3Data !== null && this.rule3Data.parkingAnalysis !== undefined
+      this.rule2Data !== null &&
+      this.rule2Data?.parkingAnalysis !== undefined &&
+      (this.ruleType === 'rule2' || this.ruleType === 'rule3')
     );
   }
 
   getParkingSummary(): string {
-    if (this.rule3Data && this.ruleType === 'rule3') {
-      const analysis = this.rule3Data.parkingAnalysis;
+    if (
+      this.rule2Data &&
+      (this.ruleType === 'rule2' || this.ruleType === 'rule3')
+    ) {
+      const analysis = this.rule2Data.parkingAnalysis;
       return (
         analysis?.validationMessage ||
         'Parking accessibility compliance check completed'
@@ -1075,120 +841,90 @@ export class RuleModalComponent implements OnInit {
   }
 
   getParkingDetails(): any {
-    if (this.rule3Data && this.ruleType === 'rule3') {
+    if (
+      this.rule2Data &&
+      (this.ruleType === 'rule2' || this.ruleType === 'rule3')
+    ) {
       return {
-        total: this.rule3Data.parkingAnalysis?.totalParkingSpaces || 0,
-        normal: this.rule3Data.parkingAnalysis?.normalParkingSpaces || 0,
+        total: this.rule2Data.parkingAnalysis?.totalParkingSpaces || 0,
+        normal: this.rule2Data.parkingAnalysis?.normalParkingSpaces || 0,
         handicapped:
-          this.rule3Data.parkingAnalysis?.handicappedParkingSpaces || 0,
+          this.rule2Data.parkingAnalysis?.handicappedParkingSpaces || 0,
         required:
-          this.rule3Data.parkingAnalysis?.requiredHandicappedSpaces || 0,
-        shortfall: this.rule3Data.parkingAnalysis?.shortfall || 0,
-        passed: this.rule3Data.parkingAnalysis?.isValidationPassed || false,
+          this.rule2Data.parkingAnalysis?.requiredHandicappedSpaces || 0,
+        shortfall: this.rule2Data.parkingAnalysis?.shortfall || 0,
+        passed: this.rule2Data.parkingAnalysis?.isValidationPassed || false,
       };
     }
     return null;
   }
 
   isUsingValidationData(): boolean {
-    const result = this.validationData !== null;
-    console.log('isUsingValidationData called - result:', result);
-    console.log('validationData:', this.validationData);
-    return result;
+    // Rule2 uses parking analysis data, not validation data
+    if (this.ruleType === 'rule2') {
+      return false;
+    }
+    return this.validationData !== null;
   }
 
   hasEmptyResults(): boolean {
-    console.log('hasEmptyResults called');
-    console.log('validationData:', this.validationData);
-    console.log('rule3Data:', this.rule3Data);
-
-    if (this.rule3Data && this.ruleType === 'rule3') {
-      // For Rule3 parking data, check if we have parking analysis
+    if (
+      this.rule2Data &&
+      (this.ruleType === 'rule2' || this.ruleType === 'rule3')
+    ) {
       const hasParkingData =
-        this.rule3Data.parkingAnalysis &&
-        (this.rule3Data.normalParkingBreakdown ||
-          this.rule3Data.handicappedParkingBreakdown);
-      console.log('Rule3 parking data check - hasParkingData:', hasParkingData);
+        this.rule2Data.parkingAnalysis &&
+        (this.rule2Data.normalParkingBreakdown ||
+          this.rule2Data.handicappedParkingBreakdown);
       return !hasParkingData;
     } else if (this.validationData) {
-      // For validation data, check if we have validation results
       const hasResults =
         this.validationData.validationResults &&
         this.validationData.validationResults.length > 0;
-      console.log('Validation data check - hasResults:', hasResults);
-      console.log('Validation results:', this.validationData.validationResults);
-      console.log(
-        'Validation results length:',
-        this.validationData.validationResults?.length
-      );
       return !hasResults;
     }
 
-    // For legacy rule data structure
-    console.log('Using legacy data structure check');
     const results = this.getResults();
     const serviceCheck = this.ruleService.isRuleResultEmpty(this.ruleData!);
     const isEmpty = results.length === 0 || serviceCheck;
-    console.log(
-      'Legacy check - results length:',
-      results.length,
-      'serviceCheck:',
-      serviceCheck,
-      'isEmpty:',
-      isEmpty
-    );
     return isEmpty;
   }
 
   getEmptyResultsMessage(): string {
-    if (this.ruleType === 'rule3') {
+    if (this.ruleType === 'rule2' || this.ruleType === 'rule3') {
       return `No parking elements found in the selected group to validate this rule.`;
     }
     return `No ${this.ruleInfo.category.toLowerCase()} elements found in the selected group to validate this rule.`;
   }
 
   async getFailedElements(): Promise<Array<{ revitElementId: string }>> {
-    console.log('getFailedElements called for ruleType:', this.ruleType);
-
     let failedElements: Array<{ revitElementId: string }> = [];
 
-    if (this.rule3Data && this.ruleType === 'rule3') {
-      // Handle Rule3 parking data structure
-      // For Rule3, since all parking spaces are valid, we don't need to create issues
-      // But we can still collect element IDs for highlighting purposes
+    if (
+      this.rule2Data &&
+      (this.ruleType === 'rule2' || this.ruleType === 'rule3')
+    ) {
       const allElementIds: string[] = [];
 
-      // Add normal parking element IDs
-      if (this.rule3Data.normalParkingBreakdown) {
-        Object.values(this.rule3Data.normalParkingBreakdown).forEach(
+      if (this.rule2Data.normalParkingBreakdown) {
+        Object.values(this.rule2Data.normalParkingBreakdown).forEach(
           (parking) => {
             allElementIds.push(...parking.elementIds);
           }
         );
       }
 
-      // Add handicapped parking element IDs
-      if (this.rule3Data.handicappedParkingBreakdown) {
-        Object.values(this.rule3Data.handicappedParkingBreakdown).forEach(
+      if (this.rule2Data.handicappedParkingBreakdown) {
+        Object.values(this.rule2Data.handicappedParkingBreakdown).forEach(
           (parking) => {
             allElementIds.push(...parking.elementIds);
           }
         );
       }
 
-      // For Rule3, we don't create issues since all are valid, but we can highlight elements
-      console.log(
-        'Rule3 - Parking elements collected for highlighting:',
-        allElementIds.length
-      );
-
-      // Set highlight to true to show the highlight button
       this.highlight = true;
-
-      // Return empty array since no failed elements to process
       return [];
     } else if (this.validationData) {
-      // Handle new validation data structure
       const failedResults = this.validationData.validationResults.filter(
         (result) => !result.isValid
       );
@@ -1198,13 +934,8 @@ export class RuleModalComponent implements OnInit {
         }))
       );
     } else {
-      // Handle legacy rule data structure
       const results = this.getResults();
-      console.log('Results from getResults():', results);
-
-      // If no results, return empty array early
       if (results.length === 0) {
-        console.log('No results found, returning empty array');
         return [];
       }
 
@@ -1215,22 +946,17 @@ export class RuleModalComponent implements OnInit {
         }));
     }
 
-    console.log('Failed element count:', failedElements.length);
-    console.log('Failed elements:', failedElements);
-
-    // Set highlight to true if there are failed elements to highlight
+    this.highlight = failedElements.length > 0;
 
     let successfulIssues = 0;
     let processedIssues = 0;
     const totalIssues = failedElements.length;
 
-    // Batch processing configuration
-    const BATCH_SIZE = 10; // Process 10 elements at a time
-    const BATCH_DELAY = 1000; // 1 second delay between batches
+    const BATCH_SIZE = 10;
+    const BATCH_DELAY = 1000;
 
     const showToastIfComplete = () => {
       processedIssues++;
-
       if (processedIssues === totalIssues) {
         if (successfulIssues > 0) {
           const message =
@@ -1239,110 +965,62 @@ export class RuleModalComponent implements OnInit {
               : `${successfulIssues} issues created in ACC`;
           this.toastService.showSuccess(message);
         }
-
-        // ✅ Only set highlight once all issues are processed
         this.highlight = true;
       }
     };
 
-    // Process elements in batches
     const processBatch = async (batch: Array<{ revitElementId: string }>) => {
       const batchPromises = batch.map(async (element) => {
         const revitId = element.revitElementId;
 
         if (!revitId) {
-          console.warn('Skipping element due to missing Revit Element ID');
           showToastIfComplete();
           return;
         }
-
-        console.log(`Processing element - Revit Element ID: ${revitId}`);
 
         try {
           const processResult = await this.viewerService.processModel(revitId);
 
           if (processResult) {
-            console.log(
-              `Processed Revit Element ID ${revitId}:`,
-              processResult
-            );
             const result = this.generateIssuePayloadFromProcessResult(
               processResult,
               this.getResults()
             );
 
-            console.log(
-              'Issue payload for Revit Element ID',
-              revitId,
-              ':',
-              JSON.stringify(result)
-            );
-
-            // Make POST request to create issue
-            console.log('About to create issue for Revit Element ID:', revitId);
             this.ruleService
               .createIssue(this.projectId!, this.accUserId, result)
               .subscribe({
-                next: (response: any) => {
-                  console.log(
-                    'Issue created successfully for Revit Element ID',
-                    revitId,
-                    ':',
-                    response
-                  );
+                next: () => {
                   successfulIssues++;
                   showToastIfComplete();
                 },
-                error: (error: any) => {
-                  console.error(
-                    'Error creating issue for Revit Element ID',
-                    revitId,
-                    ':',
-                    error
-                  );
+                error: () => {
                   showToastIfComplete();
                 },
               });
           } else {
-            console.warn(
-              `No result returned from processModel for Revit Element ID ${revitId}`
-            );
             showToastIfComplete();
           }
-        } catch (error) {
-          console.error(`Error processing Revit Element ID ${revitId}:`, error);
+        } catch {
           showToastIfComplete();
         }
       });
 
-      // Wait for all elements in the current batch to complete
       await Promise.all(batchPromises);
     };
 
-    // Process all batches with delays
     const processAllBatches = async () => {
       for (let i = 0; i < failedElements.length; i += BATCH_SIZE) {
         const batch = failedElements.slice(i, i + BATCH_SIZE);
-        console.log(
-          `Processing batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(
-            failedElements.length / BATCH_SIZE
-          )} with ${batch.length} elements`
-        );
-
         await processBatch(batch);
 
-        // Add delay between batches (except for the last batch)
         if (i + BATCH_SIZE < failedElements.length) {
-          console.log(`Waiting ${BATCH_DELAY}ms before next batch...`);
           await new Promise((resolve) => setTimeout(resolve, BATCH_DELAY));
         }
       }
     };
 
-    // Start batch processing
-    processAllBatches().catch((error) => {
-      console.error('Error in batch processing:', error);
-    });
+    processAllBatches().catch(() => {});
 
     return failedElements;
   }
@@ -1357,29 +1035,25 @@ export class RuleModalComponent implements OnInit {
     let title = '';
     let description = '';
 
-    if (this.rule3Data && this.ruleType === 'rule3') {
-      // Handle Rule3 parking data structure
-      // Find which parking type this element belongs to
+    if (this.rule2Data && this.ruleType === 'rule3') {
       let parkingType = '';
       let parkingName = '';
 
-      // Check normal parking breakdown
       for (const [type, parking] of Object.entries(
-        this.rule3Data.normalParkingBreakdown
+        this.rule2Data.normalParkingBreakdown
       )) {
-        if (parking.elementIds.includes(objectId)) {
+        if ((parking as any).elementIds.includes(objectId)) {
           parkingType = 'Normal Parking';
           parkingName = type;
           break;
         }
       }
 
-      // Check handicapped parking breakdown
       if (!parkingType) {
         for (const [type, parking] of Object.entries(
-          this.rule3Data.handicappedParkingBreakdown
+          this.rule2Data.handicappedParkingBreakdown
         )) {
-          if (parking.elementIds.includes(objectId)) {
+          if ((parking as any).elementIds.includes(objectId)) {
             parkingType = 'Handicapped Parking';
             parkingName = type;
             break;
@@ -1395,7 +1069,6 @@ export class RuleModalComponent implements OnInit {
         description = `Parking accessibility compliance check`;
       }
     } else if (this.validationData) {
-      // Handle new validation data structure
       const validationResult = this.validationData.validationResults.find(
         (result) => result.elementIds.includes(objectId)
       );
@@ -1408,7 +1081,6 @@ export class RuleModalComponent implements OnInit {
         description = `Element validation check failed`;
       }
     } else {
-      // Handle legacy rule data structure
       if (this.ruleType === 'rule1') {
         title = `Failed - ${view.name}`;
         description = `${
