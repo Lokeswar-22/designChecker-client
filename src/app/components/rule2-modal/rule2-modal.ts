@@ -78,7 +78,9 @@ export class Rule2ModalComponent implements OnInit {
     const { handicappedParkingSpaces, totalParkingSpaces } =
       this.validationData.parkingAnalysis;
     return totalParkingSpaces > 0
-      ? (handicappedParkingSpaces / totalParkingSpaces) * 100
+      ? Number(
+          ((handicappedParkingSpaces / totalParkingSpaces) * 100).toFixed(2)
+        )
       : 0;
   }
 

@@ -626,7 +626,30 @@ export class RuleModalComponent implements OnInit {
   }
 
   getPassPercentage(): number {
-    if (this.ruleType === 'rule2' || this.ruleType === 'rule3') {
+    if (this.ruleType === 'rule2') {
+      // For rule2, calculate pass rate based on handicapped parking ratio percentage
+      if (this.rule2Data && this.rule2Data.parkingAnalysis) {
+        const {
+          totalParkingSpaces,
+          handicappedParkingSpaces,
+          requiredHandicappedSpaces,
+        } = this.rule2Data.parkingAnalysis;
+        if (totalParkingSpaces > 0) {
+          const actualRatio =
+            (handicappedParkingSpaces / totalParkingSpaces) * 100;
+          const requiredRatio =
+            (requiredHandicappedSpaces / totalParkingSpaces) * 100;
+          // Pass rate is based on meeting the required ratio
+          return actualRatio >= requiredRatio
+            ? 100
+            : Math.round((actualRatio / requiredRatio) * 100);
+        }
+      }
+      // Fallback to original logic if parking analysis not available
+      const total = this.getTotalCount();
+      if (total === 0) return 0;
+      return Math.round((this.getPassedCount() / total) * 100);
+    } else if (this.ruleType === 'rule3') {
       const total = this.getTotalCount();
       if (total === 0) return 0;
       return Math.round((this.getPassedCount() / total) * 100);
@@ -685,7 +708,9 @@ export class RuleModalComponent implements OnInit {
         const { totalParkingSpaces, handicappedParkingSpaces } =
           this.rule2Data.parkingAnalysis;
         if (totalParkingSpaces > 0) {
-          return (handicappedParkingSpaces / totalParkingSpaces) * 100;
+          return Number(
+            ((handicappedParkingSpaces / totalParkingSpaces) * 100).toFixed(2)
+          );
         }
       }
       if (this.rule2Data.summary) {
