@@ -181,6 +181,23 @@ export class RuleService {
     );
   }
 
+  checkRule6(
+    elementGroupId: string,
+    accUserId: string,
+    projectId: string
+  ): Observable<RuleCheckResponse> {
+    this.projectID = projectId;
+    this.accUserID = accUserId;
+    const requestBody: RuleCheckRequest = {
+      elementGroupId,
+      accUserId,
+    };
+    return this.http.post<RuleCheckResponse>(
+      `${this.baseUrl}/rule-engine/rule6`,
+      requestBody
+    );
+  }
+
   getProjectById(accUserId: string, projectName: string): Observable<any> {
     return this.http.get(
       `${

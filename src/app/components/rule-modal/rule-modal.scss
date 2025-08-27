@@ -1578,3 +1578,26 @@
     }
   }
 }
+
+// Rule 6 specific styling
+.rule6-modal {
+  .modal-header {
+    h2 {
+      .fa-wheelchair {
+        animation: pulse 2s infinite;
+      }
+    }
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

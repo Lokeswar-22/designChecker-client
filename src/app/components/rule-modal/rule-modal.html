@@ -1,9 +1,16 @@
 <div class="modal-overlay" *ngIf="isVisible" (click)="onBackdropClick($event)">
-  <div class="modal-content">
+  <div class="modal-content" [class.rule6-modal]="ruleType === 'rule6'">
     <!-- Acknowledgement Popup -->
     <div *ngIf="showAcknowledgement" class="acknowledgement-content">
       <div class="modal-header">
-        <h2>{{ ruleInfo.title }}</h2>
+        <h2>
+          <i
+            *ngIf="ruleType === 'rule6'"
+            class="fas fa-wheelchair"
+            style="margin-right: 10px; color: #ff6b35"
+          ></i>
+          {{ ruleInfo.title }}
+        </h2>
         <button class="close-button" (click)="onCancel()">
           <i class="fas fa-times"></i>
         </button>
@@ -24,7 +31,39 @@
 
             <!-- Thresholds Section -->
             <div class="info-section" *ngIf="ruleInfo.thresholds.requirement">
-              <h3>Compliance Requirements</h3>
+              <h3>
+                <i
+                  *ngIf="ruleType === 'rule1'"
+                  class="fas fa-ruler"
+                  style="margin-right: 8px; color: #667eea"
+                ></i>
+                <i
+                  *ngIf="ruleType === 'rule2'"
+                  class="fas fa-car"
+                  style="margin-right: 8px; color: #667eea"
+                ></i>
+                <i
+                  *ngIf="ruleType === 'rule3'"
+                  class="fas fa-arrows-alt"
+                  style="margin-right: 8px; color: #667eea"
+                ></i>
+                <i
+                  *ngIf="ruleType === 'rule4'"
+                  class="fas fa-arrows-alt"
+                  style="margin-right: 8px; color: #667eea"
+                ></i>
+                <i
+                  *ngIf="ruleType === 'rule5'"
+                  class="fas fa-arrows-alt"
+                  style="margin-right: 8px; color: #667eea"
+                ></i>
+                <i
+                  *ngIf="ruleType === 'rule6'"
+                  class="fas fa-ruler-combined"
+                  style="margin-right: 8px; color: #ff6b35"
+                ></i>
+                Compliance Requirements
+              </h3>
               <div class="thresholds-card">
                 <div class="requirement-text">
                   <i class="fas fa-check-circle"></i>
@@ -96,9 +135,49 @@
             <!-- Thresholds Table Section -->
             <div class="info-section" *ngIf="ruleInfo.thresholdsTable">
               <h3>
+                <i
+                  *ngIf="ruleType === 'rule1'"
+                  class="fas fa-door-open"
+                  style="margin-right: 8px; color: #667eea"
+                ></i>
+                <i
+                  *ngIf="ruleType === 'rule2'"
+                  class="fas fa-parking"
+                  style="margin-right: 8px; color: #667eea"
+                ></i>
+                <i
+                  *ngIf="ruleType === 'rule3'"
+                  class="fas fa-arrow-up"
+                  style="margin-right: 8px; color: #667eea"
+                ></i>
+                <i
+                  *ngIf="ruleType === 'rule4'"
+                  class="fas fa-arrow-up"
+                  style="margin-right: 8px; color: #667eea"
+                ></i>
+                <i
+                  *ngIf="ruleType === 'rule5'"
+                  class="fas fa-arrow-up"
+                  style="margin-right: 8px; color: #667eea"
+                ></i>
+                <i
+                  *ngIf="ruleType === 'rule6'"
+                  class="fas fa-table"
+                  style="margin-right: 8px; color: #ff6b35"
+                ></i>
                 {{
-                  ruleType === "rule2"
-                    ? "Slope Validation Table"
+                  ruleType === "rule1"
+                    ? "Doorway Accessibility Requirements"
+                    : ruleType === "rule2"
+                    ? "Accessible Parking Lots Requirements"
+                    : ruleType === "rule3"
+                    ? "Ramp Width Requirements"
+                    : ruleType === "rule4"
+                    ? "Lift Lobby Accessibility Requirements"
+                    : ruleType === "rule5"
+                    ? "Lift Car Internal Dimensions"
+                    : ruleType === "rule6"
+                    ? "Lift Lobby Accessibility Requirements"
                     : "Parking Accessibility Requirements"
                 }}
               </h3>
@@ -121,14 +200,34 @@
                       "
                     >
                       <td>
-                        <!-- Rule 2: Ramp slope ranges -->
+                        <!-- Rule 1: Doorway accessibility requirements -->
+                        <ng-container *ngIf="ruleType === 'rule1'">
+                          {{ ruleInfo.thresholdsTable.rows[i][0] }}
+                        </ng-container>
+
+                        <!-- Rule 2: Accessible parking lot requirements -->
                         <ng-container *ngIf="ruleType === 'rule2'">
                           {{ ruleInfo.thresholdsTable.rows[i][0] }}
                         </ng-container>
 
-                        <!-- Rule 3: Parking lot ranges -->
+                        <!-- Rule 3: Ramp width requirements -->
                         <ng-container *ngIf="ruleType === 'rule3'">
-                          {{ getParkingRangeText(i) }}
+                          {{ ruleInfo.thresholdsTable.rows[i][0] }}
+                        </ng-container>
+
+                        <!-- Rule 4: Lift lobby accessibility requirements -->
+                        <ng-container *ngIf="ruleType === 'rule4'">
+                          {{ ruleInfo.thresholdsTable.rows[i][0] }}
+                        </ng-container>
+
+                        <!-- Rule 5: Lift car internal dimensions -->
+                        <ng-container *ngIf="ruleType === 'rule5'">
+                          {{ ruleInfo.thresholdsTable.rows[i][0] }}
+                        </ng-container>
+
+                        <!-- Rule 6: Lift lobby requirements -->
+                        <ng-container *ngIf="ruleType === 'rule6'">
+                          {{ ruleInfo.thresholdsTable.rows[i][0] }}
                         </ng-container>
                       </td>
                       <td>{{ ruleInfo.thresholdsTable.rows[i][1] }}</td>
@@ -178,7 +277,14 @@
     <!-- Rule Check Results -->
     <div *ngIf="!showAcknowledgement" class="rule-check-content">
       <div class="modal-header">
-        <h2>{{ ruleInfo.title }}</h2>
+        <h2>
+          <i
+            *ngIf="ruleType === 'rule6'"
+            class="fas fa-wheelchair"
+            style="margin-right: 10px; color: #ff6b35"
+          ></i>
+          {{ ruleInfo.title }}
+        </h2>
         <button class="close-button" (click)="onClose()">
           <i class="fas fa-times"></i>
         </button>

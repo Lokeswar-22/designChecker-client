@@ -22,7 +22,7 @@ import { HeaderComponent } from '../header/header';
 import { RuleModalComponent } from '../rule-modal/rule-modal';
 import { SidebarComponent } from '../sidebar/sidebar';
 
-type RuleName = 'Rule1' | 'Rule2' | 'Rule3' | 'Rule4' | 'Rule5';
+type RuleName = 'Rule1' | 'Rule2' | 'Rule3' | 'Rule4' | 'Rule5' | 'Rule6';
 
 @Component({
   selector: 'app-element-group-details',
@@ -209,7 +209,14 @@ export class ElementGroupDetailsComponent implements OnInit, AfterViewInit {
       .map((s) => s.trim())
       .filter(Boolean);
 
-    const allowed: RuleName[] = ['Rule1', 'Rule2', 'Rule3', 'Rule4', 'Rule5'];
+    const allowed: RuleName[] = [
+      'Rule1',
+      'Rule2',
+      'Rule3',
+      'Rule4',
+      'Rule5',
+      'Rule6',
+    ];
     return items
       .map((it) => allowed.find((a) => a.toLowerCase() === it.toLowerCase()))
       .filter((v): v is RuleName => !!v);
@@ -263,6 +270,11 @@ export class ElementGroupDetailsComponent implements OnInit, AfterViewInit {
 
   onRule5Click() {
     this.ruleType = 'rule5';
+    this.showRuleModal = true;
+  }
+
+  onRule6Click() {
+    this.ruleType = 'rule6';
     this.showRuleModal = true;
   }
 

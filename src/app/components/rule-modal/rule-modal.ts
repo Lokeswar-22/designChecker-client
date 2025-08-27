@@ -180,41 +180,52 @@ export class RuleModalComponent implements OnInit {
     switch (this.ruleType) {
       case 'rule1':
         this.ruleInfo = {
-          title: 'Rule 1 – Door Width',
+          title: 'Rule 1 - Accessibility Around and Within the Building: Doors',
           description:
-            'Validates every door instance for minimum clear width. The rule first looks for a width value on the instance; if missing, it falls back to the door type. If no width is found anywhere, the instance fails.',
+            'Validates the minimum clear opening of doorways to ensure accessibility. This rule checks that the clear opening is 850 mm when measured between the face of the door and the face of the doorstop with the door open at 90 degrees.',
           executionInfo:
-            '1) Filter all door INSTANCES from the AEC Data Model.\n' +
-            '2) For each instance, attempt to read its "Width" parameter.\n' +
-            '3) If the instance has no width, look up the instance`s Family/Type and read the Type "Width".\n' +
-            '4) If a width is found (from instance or type), check width ≥ 850 mm → PASS, else FAIL.\n' +
-            '5) If no width is found in either place, mark as FAIL.\n' +
-            '6) Create ACC issues for all failed elements.',
-          category: 'Doors',
+            '1) Identify doorways along the accessible route (accessible door).\n' +
+            '2) Check that the minimum distance between face of the door and face of the doorstop with the door open at 90 degrees is 850mm.\n' +
+            '3) Create ACC issues for non-compliant doorways.',
+          category: 'Doors & Accessibility',
           thresholds: {
             minimum: 850,
             maximum: null,
             unit: 'mm',
             requirement:
-              'Door width (instance "Width" or fallback Type "Width") must be ≥ 850 mm. If "Width" is missing on both instance and type, the element FAILS.',
+              'The minimum clear opening of doorways must be 850 mm measured between the face of the door and the face of the doorstop with the door open at 90°.',
+          },
+          thresholdsTable: {
+            headers: ['Door Type', 'Minimum Clear Opening'],
+            rows: [
+              ['Sliding/Automatic Door', '850 mm'],
+              ['Swing Door', '850 mm'],
+              ['Folding Door', '850 mm'],
+            ],
           },
         };
         break;
 
       case 'rule2':
         this.ruleInfo = {
-          title: 'Rule 2 - Parking Accessibility Compliance',
+          title:
+            'Rule 2 - Arriving at The Building: Accessible Vehicle Parking',
           description:
-            'Validates that sufficient handicapped parking spaces are provided based on the total number of normal parking spaces.',
+            'Validates the provision of accessible parking lots for vehicles driven by persons with disabilities, in accordance with Table 2 of the Code of Accessibility, with exceptions for hospitals.',
           executionInfo:
-            'Fetches parking data by level. Counts total, normal, and handicapped parking spaces (identifies HCP/Handicapped in names). Validates compliance with accessibility requirements and calculates shortfall if needed.',
-          category: 'Parking',
+            '1) Determine if the development is a hospital. If so, minimum accessible parking provision is not applicable (refer to clause 3.5.1.2).\n' +
+            '2) Identify the total number of vehicle parking lots provided for the development.\n' +
+            '3) If the number of vehicle parking lots is more than 10, check the number of accessible lots provided against Table 2.\n' +
+            '4) If the number of vehicle parking lots is 10 or less, check if one of the lots is designed and constructed in accordance with the specification in the Code (not required to display the Symbol of Access).\n' +
+            "5) Ensure accessible parking lots are over and above LTA's parking requirements.\n" +
+            '6) Create ACC issues for non-compliant parking provisions.',
+          category: 'Parking & Accessibility',
           thresholds: {
-            minimum: 'Variable based on normal spaces',
+            minimum: null,
             maximum: null,
-            unit: 'handicapped spaces required',
+            unit: null,
             requirement:
-              '1-50: 1 required, 51-100: 2 required, 101-300: 3 required, 301-500: 4 required, >500: 4 + (additional÷200)',
+              'Where vehicle parks are required to be provided, the number of accessible parking lots for vehicles driven by persons with disabilities shall be in accordance with Table except in hospitals.',
           },
           thresholdsTable: {
             headers: [
@@ -233,25 +244,100 @@ export class RuleModalComponent implements OnInit {
 
       case 'rule3':
         this.ruleInfo = {
-          title: 'Rule 3 - Ramp Width Check',
+          title:
+            'Rule 3 - Accessibility Around and Within the Building: Ramp - Width',
           description:
-            'Ensures ramps have a minimum width of 1200mm for accessibility compliance.',
+            'Validates the minimum clear width of ramps to ensure accessibility. Ramps that are part of accessible routes, corridors, and paths must comply with clause 4.2.1. Otherwise, a minimum clear width of 1200mm is required.',
           executionInfo:
-            'Fetches ramp elements and validates their width. Checks if the ramp width meets the minimum requirement of 1200mm for accessibility standards.',
-          category: 'Ramps',
+            '1) Check if the ramp is part of an accessible route.\n' +
+            '2) If yes, verify that the minimum clear width of the ramp complies with Clause 4.2.1.\n' +
+            '3) If no, verify that the minimum clear width of the ramp is 1200mm.\n' +
+            '4) Create ACC issues for non-compliant ramps.',
+          category: 'Ramps & Accessibility',
           thresholds: {
             minimum: 1200,
             maximum: null,
             unit: 'mm',
             requirement:
-              'Ramp width must be at least 1200mm to meet accessibility requirements',
+              'Ramps that are part of accessible routes, corridors and paths shall comply with clause 4.2.1. Otherwise, the minimum clear width of a ramp shall be 1200mm.',
+          },
+          thresholdsTable: {
+            headers: ['Ramp Type', 'Minimum Clear Width Requirement'],
+            rows: [
+              ['Part of Accessible Route', 'Complies with Clause 4.2.1'],
+              ['Not Part of Accessible Route', '1200 mm'],
+            ],
           },
         };
         break;
 
       case 'rule4':
         this.ruleInfo = {
-          title: 'Rule 4 - Staircase Riser Height',
+          title:
+            'Rule 4 - Accessibility Around and Within the Building: Lifts Designated for Wheelchair Users',
+          description:
+            'Validates lift lobby manoeuvring space for wheelchair users to ensure accessibility compliance. This rule checks that lifts designed for wheelchair users have adequate clear manoeuvring space in the lobby area.',
+          executionInfo:
+            '1) Identify accessible lifts designated for wheelchair users.\n' +
+            '2) Check that clear manoeuvring space of 1200mm wide by 1500mm deep is provided at the lift door.\n' +
+            '3) If private lift is along the accessible route, private lift also needs to comply with these requirements.\n' +
+            '4) Create ACC issues for non-compliant lift lobby spaces.',
+          category: 'Lifts & Accessibility',
+          thresholds: {
+            minimum: {
+              clearWidth: 1200,
+              transferZone: { width: 1200, depth: 1500 },
+            },
+            maximum: null,
+            unit: 'mm',
+            requirement:
+              'Lift lobby space with lifts designed for wheelchair users must have a clear manoeuvring space of 1200 mm wide by 1500 mm deep.',
+          },
+          thresholdsTable: {
+            headers: ['Lift Lobby Requirement', 'Minimum Dimension'],
+            rows: [
+              ['Clear Width', '1200 mm'],
+              ['Clear Depth', '1500 mm'],
+            ],
+          },
+        };
+        break;
+
+      case 'rule5':
+        this.ruleInfo = {
+          title:
+            'Rule 5 - Accessibility Around and Within the Building: Lifts Designated for Wheelchair Users',
+          description:
+            'Validates the minimum internal lift car dimensions for wheelchair users to ensure accessibility compliance. This rule checks that lifts designated for wheelchair users have adequate internal dimensions for safe and comfortable use.',
+          executionInfo:
+            '1) Identify accessible lifts designated for wheelchair users.\n' +
+            '2) Check that internal dimensions of lift car is 1200mm wide by 1400mm deep.\n' +
+            '3) Create ACC issues for non-compliant lift car dimensions.',
+          category: 'Lifts & Accessibility',
+          thresholds: {
+            minimum: {
+              clearWidth: 1200,
+              transferZone: { width: 1200, depth: 1400 },
+            },
+            maximum: null,
+            unit: 'mm',
+            requirement:
+              'The minimum internal lift car dimension must be 1200 mm wide by 1400 mm deep.',
+          },
+          thresholdsTable: {
+            headers: ['Lift Car Requirement', 'Minimum Dimension'],
+            rows: [
+              ['Internal Width', '1200 mm'],
+              ['Internal Depth', '1400 mm'],
+            ],
+          },
+        };
+
+        break;
+
+      case 'rule6':
+        this.ruleInfo = {
+          title: 'Rule 6 - Staircase Riser Height',
           description:
             'Validates that staircase riser height does not exceed the maximum allowed height for safety and accessibility.',
           executionInfo:
@@ -263,24 +349,6 @@ export class RuleModalComponent implements OnInit {
             unit: 'mm',
             requirement:
               'Staircase riser height must not exceed 175mm for safety and accessibility compliance',
-          },
-        };
-        break;
-
-      case 'rule5':
-        this.ruleInfo = {
-          title: 'Rule 5 - Lift length and width  validation',
-          description:
-            'Validates lifts assumed as rectangles by calculating length and width from area and perimeter. Ensures minimum width of 1200 mm and minimum length of 1500 mm to comply with accessibility standards. Flags failures with detailed reasons tied to specific room elements.',
-          executionInfo:
-            'Fetches room instances with area and perimeter properties. Calculates rectangle dimensions using geometric formulas from area/perimeter data. Validates room dimensions against accessibility thresholds. Reports failures with element IDs for remediation.',
-          category: 'Accessibility / Space Validation',
-          thresholds: {
-            minimum: 1200,
-            maximum: 1500,
-            unit: 'mm',
-            requirement:
-              'Lifts must have a minimum clear width of 1200 mm and minimum length of 1500 mm as derived from area and perimeter to ensure accessibility compliance.',
           },
         };
         break;
@@ -331,6 +399,8 @@ export class RuleModalComponent implements OnInit {
       this.checkRule4();
     } else if (this.ruleType === 'rule5') {
       this.checkRule5();
+    } else if (this.ruleType === 'rule6') {
+      this.checkRule6();
     }
   }
 
@@ -523,7 +593,43 @@ export class RuleModalComponent implements OnInit {
           await this.getFailedElements();
         },
         error: () => {
-          this.error = 'Failed to check rule 1. Please try again.';
+          this.error = 'Failed to check rule 5. Please try again.';
+          this.loading = false;
+        },
+      });
+  }
+
+  checkRule6() {
+    this.ruleService
+      .checkRule6(this.elementGroupId, this.accUserId, this.projectId!)
+      .subscribe({
+        next: async (response: RuleCheckResponse) => {
+          this.ruleData = response;
+
+          if (response && response.validationResults) {
+            try {
+              this.validationData = {
+                validationResults: response.validationResults,
+                summary: response.summary as any,
+                failureBreakdown: response.failureBreakdown,
+              };
+
+              if (
+                !this.validationData.validationResults ||
+                !this.validationData.summary
+              ) {
+                this.validationData = null;
+              }
+            } catch {
+              this.validationData = null;
+            }
+          }
+
+          this.loading = false;
+          await this.getFailedElements();
+        },
+        error: () => {
+          this.error = 'Failed to check rule 6. Please try again.';
           this.loading = false;
         },
       });
@@ -1145,6 +1251,14 @@ export class RuleModalComponent implements OnInit {
             (result: { revitElementId: any }) =>
               result.revitElementId === objectId
           )?.message || 'Wall check failed'
+        }`;
+      } else if (this.ruleType === 'rule6') {
+        title = `Rule 6 Check Failed - ${view.name}`;
+        description = `${
+          results.find(
+            (result: { revitElementId: any }) =>
+              result.revitElementId === objectId
+          )?.message || 'Rule 6 check failed'
         }`;
       }
     }

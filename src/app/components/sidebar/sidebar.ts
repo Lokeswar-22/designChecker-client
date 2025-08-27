@@ -1,12 +1,12 @@
-import { Component, Output, EventEmitter, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './sidebar.html',
-  styleUrl: './sidebar.scss'
+  styleUrl: './sidebar.scss',
 })
 export class SidebarComponent {
   @Input() showRules: boolean = false;
@@ -16,6 +16,7 @@ export class SidebarComponent {
   @Output() rule3Click = new EventEmitter<void>();
   @Output() rule4Click = new EventEmitter<void>();
   @Output() rule5Click = new EventEmitter<void>();
+  @Output() rule6Click = new EventEmitter<void>();
 
   showRulesSubmenu = false;
 
@@ -46,4 +47,8 @@ export class SidebarComponent {
   onRule5Click() {
     this.rule5Click.emit();
   }
-} 
+
+  onRule6Click() {
+    this.rule6Click.emit();
+  }
+}
