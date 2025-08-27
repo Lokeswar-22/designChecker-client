@@ -1073,6 +1073,46 @@
   margin-right: auto;
 }
 
+/* Additional Notes Section */
+.additional-notes {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 8px;
+
+  .note-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+    line-height: 1.6;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .note-number {
+      background: #667eea;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 50%;
+      font-size: 0.8rem;
+      font-weight: 600;
+      min-width: 24px;
+      text-align: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .note-text {
+      color: #856404;
+      font-size: 0.95rem;
+      flex: 1;
+    }
+  }
+}
+
 /* Thresholds Table Section */
 .thresholds-table-card {
   background: #e8f4fd;

@@ -25,6 +25,7 @@ interface RuleInfo {
     headers: string[];
     rows: Array<Array<string | number>>;
   };
+  additionalNotes?: string[];
 }
 
 interface ValidationResult {
@@ -239,6 +240,10 @@ export class RuleModalComponent implements OnInit {
               ['Exceeding 300', '4 + 1 for every additional 200'],
             ],
           },
+          additionalNotes: [
+            "(1) The number of accessible parking lots provided must be over and above the LTA's parking requirements.",
+            '(2) However, for small developments where the minimum requirement for car parking lots is 10 or less, no additional accessible parking lot is required provided one of the lots is designed and constructed in accordance with the specification in the Code but without displaying the Symbol of Access. Should the need arise; the car parking lot can be converted into an accessible lot.',
+          ],
         };
         break;
 

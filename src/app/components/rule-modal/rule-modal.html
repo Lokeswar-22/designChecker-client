@@ -252,6 +252,31 @@
               </div>
             </div>
 
+            <!-- Additional Notes Section -->
+            <div
+              class="info-section"
+              *ngIf="
+                ruleInfo.additionalNotes && ruleInfo.additionalNotes.length > 0
+              "
+            >
+              <h3>
+                <i
+                  class="fas fa-info-circle"
+                  style="margin-right: 8px; color: #667eea"
+                ></i>
+                Important Notes
+              </h3>
+              <div class="additional-notes">
+                <div
+                  *ngFor="let note of ruleInfo.additionalNotes"
+                  class="note-item"
+                >
+                  <span class="note-number">{{ note.split(")")[0] }})</span>
+                  <span class="note-text">{{ note.split(")")[1] }}</span>
+                </div>
+              </div>
+            </div>
+
             <div class="info-section">
               <h3>What will happen?</h3>
               <p>{{ ruleInfo.executionInfo }}</p>
