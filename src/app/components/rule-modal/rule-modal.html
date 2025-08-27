@@ -62,7 +62,22 @@
                   class="fas fa-ruler-combined"
                   style="margin-right: 8px; color: #ff6b35"
                 ></i>
-                Compliance Requirements
+                Regulatory Requirement
+                <span class="requirement-code">
+                  {{
+                    ruleType === "rule1"
+                      ? "4.4.2.1"
+                      : ruleType === "rule2"
+                      ? "3.5.1.1"
+                      : ruleType === "rule3"
+                      ? "4.6.3.1"
+                      : ruleType === "rule4"
+                      ? "4.9.1.3"
+                      : ruleType === "rule5"
+                      ? "4.9.2.1"
+                      : ""
+                  }}
+                </span>
               </h3>
               <div class="thresholds-card">
                 <div class="requirement-text">
