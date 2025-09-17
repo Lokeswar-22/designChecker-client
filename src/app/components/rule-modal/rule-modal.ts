@@ -4,7 +4,26 @@ import { ActivatedRoute } from '@angular/router';
 import { LocalService } from '../../services/local.service';
 import { RuleCheckResponse, RuleService } from '../../services/rule.service';
 import { ToastService } from '../../services/toast.service';
+import { BollardValidationResponse } from '../../services/viewer-measure.service';
 import { ViewerService } from '../../services/viewer.service';
+
+// Box validation interface
+interface BoxValidationResponse {
+  validationResults: Array<{
+    Name: string;
+    length_mm: number;
+    width_mm: number;
+    isValid: boolean;
+    elementIds: string[];
+  }>;
+  summary: {
+    totalElementChecked: number;
+    failedValidations: number;
+    failedWithElementIds: number;
+    failedWithoutElementIds: number;
+    uniqueElementIds: number;
+  };
+}
 
 interface RuleInfo {
   title: string;
@@ -105,6 +124,8 @@ export class RuleModalComponent implements OnInit {
   ruleData: RuleCheckResponse | null = null;
   validationData: ValidationResponse | null = null;
   rule2Data: Rule3Response | null = null;
+  rule7Data: BollardValidationResponse | null = null;
+  rule8Data: BoxValidationResponse | null = null;
   error: string = '';
   urn: string = '';
 
@@ -170,10 +191,15 @@ export class RuleModalComponent implements OnInit {
       this.ruleData = null;
       this.validationData = null;
       this.rule2Data = null;
+      this.rule7Data = null;
+      this.rule8Data = null;
       this.highlight = false;
       this.setupRuleInfo();
       this.viewerService.clearFailedElementsVisuals();
       this.viewerService.clearProcessedRevitIds();
+
+      // Rule 7 is handled directly in checkRule7() method
+      // Rule 8 is handled directly in checkRule8() method
     }
   }
 
@@ -358,6 +384,56 @@ export class RuleModalComponent implements OnInit {
         };
         break;
 
+      case 'rule7':
+        this.ruleInfo = {
+          title: 'Rule 7 - Bollard Distance Analysis',
+          description:
+            'Validates the minimum clear distance between adjacent bollards to ensure proper spacing for accessibility and safety.',
+          executionInfo:
+            'Identifies bollard elements and measures face-to-face distances between consecutive neighbors. Validates that the minimum clear distance between bollards is 900mm.',
+          category: 'Site Elements',
+          thresholds: {
+            minimum: 900,
+            maximum: null,
+            unit: 'mm',
+            requirement:
+              'The minimum clear distance between adjacent bollards must be 900mm for accessibility compliance',
+          },
+        };
+        break;
+
+      case 'rule8':
+        this.ruleInfo = {
+          title:
+            'Rule 8 - Accessibility Around and Within the Building: Lifts Designated for Wheelchair Users',
+          description:
+            'Validates lift lobby manoeuvring space for wheelchair users to ensure accessibility compliance. This rule checks that lifts designed for wheelchair users have adequate clear manoeuvring space in the lobby area.',
+          executionInfo:
+            '1) Identify accessible lifts designated for wheelchair users.\n' +
+            '2) Check that clear manoeuvring space of 1200mm wide by 1500mm deep is provided at the lift door.\n' +
+            '3) If private lift is along the accessible route, private lift also needs to comply with these requirements.\n' +
+            '4) Create ACC issues for non-compliant lift lobby spaces.',
+          category: 'Lifts & Accessibility',
+          thresholds: {
+            minimum: {
+              clearWidth: 1200,
+              transferZone: { width: 1200, depth: 1500 },
+            },
+            maximum: null,
+            unit: 'mm',
+            requirement:
+              'Lift lobby space with lifts designed for wheelchair users must have a clear manoeuvring space of 1200 mm wide by 1500 mm deep.',
+          },
+          thresholdsTable: {
+            headers: ['Lift Lobby Requirement', 'Minimum Dimension'],
+            rows: [
+              ['Clear Width', '1200 mm'],
+              ['Clear Depth', '1500 mm'],
+            ],
+          },
+        };
+        break;
+
       default:
         this.ruleInfo = {
           title: 'Rule Check',
@@ -406,6 +482,10 @@ export class RuleModalComponent implements OnInit {
       this.checkRule5();
     } else if (this.ruleType === 'rule6') {
       this.checkRule6();
+    } else if (this.ruleType === 'rule7') {
+      this.checkRule7();
+    } else if (this.ruleType === 'rule8') {
+      this.checkRule8();
     }
   }
 
@@ -640,6 +720,215 @@ export class RuleModalComponent implements OnInit {
       });
   }
 
+  checkRule7() {
+    const viewer = this.viewerService.getViewer();
+    if (!viewer) {
+      this.error = 'Viewer not available';
+      this.loading = false;
+      return;
+    }
+
+    this.viewerService
+      .measureBollardDistances(viewer, {
+        select: false,
+        onlyLeaves: true,
+        category: 'Specialty Equipment',
+        family: 'TS_Square Bollard',
+        typeValue: 'Bollard',
+        pairing: 'chain',
+        minOverlapXY: 5,
+        minOverlapZ: 5,
+        lineTolMM: 3,
+      })
+      .then(async (result) => {
+        if (result.validation) {
+          this.rule7Data = result.validation;
+
+          // Also set validationData for UI compatibility
+          console.log(
+            '[RuleModal] Original validation results:',
+            result.validation.validationResults
+          );
+
+          const mappedResults = result.validation.validationResults.map(
+            (r: any) => ({
+              typeId: `${r.A_Label}-${r.B_Label}`,
+              typeName: 'Bollard Pair',
+              familyName: 'TS_Square Bollard',
+              widthMm: r.clearDistanceBetweenBollard || 0,
+              isValid: r.isValid,
+              elementIds: r.elementIds,
+            })
+          );
+
+          console.log('[RuleModal] Mapped validation results:', mappedResults);
+
+          this.validationData = {
+            validationResults: mappedResults,
+            summary: {
+              totalTypesChecked: result.validation.validationResults.length,
+              failedValidations: result.validation.summary.failedValidations,
+              failedWithElementIds:
+                result.validation.summary.failedWithElementIds,
+              failedWithoutElementIds:
+                result.validation.summary.failedValidations -
+                result.validation.summary.failedWithElementIds,
+              totalFailedElementInstances:
+                result.validation.validationResults.filter(
+                  (r: any) => !r.isValid
+                ).length,
+              uniqueElementIds: new Set(
+                result.validation.validationResults.flatMap(
+                  (r: any) => r.elementIds
+                )
+              ).size,
+              duplicateElementIds: 0,
+              perfectMatchesFound: result.validation.validationResults.filter(
+                (r: any) => r.isValid
+              ).length,
+              totalInstancesChecked: result.validation.validationResults.length,
+            },
+            failureBreakdown: {},
+          };
+
+          console.log(
+            '[RuleModal] Final validationData set:',
+            JSON.stringify(this.validationData)
+          );
+          console.log(
+            '[RuleModal] Rule 7 validation completed:',
+            JSON.stringify(result.validation)
+          );
+        }
+
+        // Set ruleData to trigger UI display
+        this.ruleData = {
+          rule: 'rule7',
+          summary: {
+            totalPassed: this.getPassedCount(),
+            totalFailed: this.getFailedCount(),
+            totalElements: this.getTotalCount(),
+          },
+          issuesCreated: 0,
+        };
+
+        console.log('[RuleModal] ruleData set for Rule 7:', this.ruleData);
+
+        // Single comprehensive log for Rule 7 data
+        console.log('[RuleModal] Rule 7 Final State:', {
+          passedCount: this.getPassedCount(),
+          failedCount: this.getFailedCount(),
+          totalCount: this.getTotalCount(),
+          validationDataExists: !!this.validationData,
+          ruleDataExists: !!this.ruleData,
+        });
+
+        this.loading = false;
+        await this.getFailedElements();
+      })
+      .catch((error) => {
+        console.error('[RuleModal] Error during Rule 7 analysis:', error);
+        this.error = 'Failed to analyze bollard distances. Please try again.';
+        this.loading = false;
+      });
+  }
+
+  checkRule8() {
+    const viewer = this.viewerService.getViewer();
+    if (!viewer) {
+      this.error = 'Viewer not available';
+      this.loading = false;
+      return;
+    }
+
+    this.viewerService
+      .validateMassBoxDimensions()
+      .then(async (result) => {
+        if (result) {
+          this.rule8Data = result;
+
+          // Also set validationData for UI compatibility
+          console.log(
+            '[RuleModal] Original Box validation results:',
+            result.validationResults
+          );
+
+          const mappedResults = result.validationResults.map((r: any) => ({
+            typeId: r.Name,
+            typeName: 'Box Element',
+            familyName: 'Box',
+            widthMm: r.width_mm,
+            isValid: r.isValid,
+            elementIds: r.elementIds,
+            // Additional properties for Box elements
+            lengthMm: r.length_mm,
+          }));
+
+          console.log(
+            '[RuleModal] Mapped Box validation results:',
+            mappedResults
+          );
+
+          this.validationData = {
+            validationResults: mappedResults,
+            summary: {
+              totalTypesChecked: result.validationResults.length,
+              failedValidations: result.summary.failedValidations,
+              failedWithElementIds: result.summary.failedWithElementIds,
+              failedWithoutElementIds: result.summary.failedWithoutElementIds,
+              totalFailedElementInstances: result.summary.failedValidations,
+              uniqueElementIds: result.summary.uniqueElementIds,
+              duplicateElementIds: 0,
+              perfectMatchesFound:
+                result.summary.totalElementChecked -
+                result.summary.failedValidations,
+              totalInstancesChecked: result.summary.totalElementChecked,
+            },
+            failureBreakdown: {},
+          };
+
+          console.log(
+            '[RuleModal] Final Box validationData set:',
+            JSON.stringify(this.validationData)
+          );
+          console.log(
+            '[RuleModal] Rule 8 validation completed:',
+            JSON.stringify(result)
+          );
+        }
+
+        // Set ruleData to trigger UI display
+        this.ruleData = {
+          rule: 'rule8',
+          summary: {
+            totalPassed: this.getPassedCount(),
+            totalFailed: this.getFailedCount(),
+            totalElements: this.getTotalCount(),
+          },
+          issuesCreated: 0,
+        };
+
+        console.log('[RuleModal] ruleData set for Rule 8:', this.ruleData);
+
+        // Single comprehensive log for Rule 8 data
+        console.log('[RuleModal] Rule 8 Final State:', {
+          passedCount: this.getPassedCount(),
+          failedCount: this.getFailedCount(),
+          totalCount: this.getTotalCount(),
+          validationDataExists: !!this.validationData,
+          ruleDataExists: !!this.ruleData,
+        });
+
+        this.loading = false;
+        await this.getFailedElements();
+      })
+      .catch((error) => {
+        console.error('[RuleModal] Error during Rule 8 analysis:', error);
+        this.error = 'Failed to validate Box dimensions. Please try again.';
+        this.loading = false;
+      });
+  }
+
   onClose() {
     this.viewerService.clearFailedElementsVisuals();
     this.viewerService.clearProcessedRevitIds();
@@ -659,6 +948,15 @@ export class RuleModalComponent implements OnInit {
   }
 
   getPassedCount(): number {
+    if (
+      this.validationData &&
+      (this.ruleType === 'rule7' || this.ruleType === 'rule8')
+    ) {
+      return this.validationData.validationResults.filter(
+        (result) => result.isValid
+      ).length;
+    }
+
     if (
       this.validationData &&
       this.validationData.summary &&
@@ -692,6 +990,15 @@ export class RuleModalComponent implements OnInit {
   getFailedCount(): number {
     if (
       this.validationData &&
+      (this.ruleType === 'rule7' || this.ruleType === 'rule8')
+    ) {
+      return this.validationData.validationResults.filter(
+        (result) => !result.isValid
+      ).length;
+    }
+
+    if (
+      this.validationData &&
       this.validationData.summary &&
       this.validationData.summary.totalFailedElementInstances !== undefined
     ) {
@@ -714,6 +1021,13 @@ export class RuleModalComponent implements OnInit {
   }
 
   getTotalCount(): number {
+    if (
+      this.validationData &&
+      (this.ruleType === 'rule7' || this.ruleType === 'rule8')
+    ) {
+      return this.validationData.validationResults.length;
+    }
+
     if (
       this.validationData &&
       this.validationData.summary &&
@@ -872,7 +1186,23 @@ export class RuleModalComponent implements OnInit {
   }
 
   getResults(): any[] {
-    if (this.rule2Data && this.ruleType === 'rule2') {
+    if (
+      this.validationData &&
+      (this.ruleType === 'rule7' || this.ruleType === 'rule8')
+    ) {
+      // For Rule 7, return validation results formatted for display
+      return this.validationData.validationResults.map((result) => ({
+        typeId: result.typeId,
+        typeName: result.typeName,
+        familyName: result.familyName,
+        passed: result.isValid,
+        widthMm: result.widthMm,
+        elementIds: result.elementIds,
+        message: `Clear distance: ${
+          result.widthMm ? result.widthMm.toFixed(1) + 'mm' : 'N/A'
+        }`,
+      }));
+    } else if (this.rule2Data && this.ruleType === 'rule2') {
       // For Rule2 only, return empty array to hide detailed results
       // since the parking analysis section already shows all the information
       return [];
@@ -942,12 +1272,24 @@ export class RuleModalComponent implements OnInit {
     return this.rule2Data?.handicappedParkingBreakdown || null;
   }
 
+  getRule7Data(): BollardValidationResponse | null {
+    return this.rule7Data || null;
+  }
+
+  getRule8Data(): BoxValidationResponse | null {
+    return this.rule8Data || null;
+  }
+
   isRule3(): boolean {
     return this.ruleType === 'rule3';
   }
 
   isRule2(): boolean {
     return this.ruleType === 'rule2';
+  }
+
+  isRule7(): boolean {
+    return this.ruleType === 'rule7' || this.ruleType === 'rule8';
   }
 
   isParkingRule(): boolean {
@@ -1000,10 +1342,28 @@ export class RuleModalComponent implements OnInit {
     if (this.ruleType === 'rule2') {
       return false;
     }
+    // Rule7 uses validation data
+    if (this.ruleType === 'rule7' || this.ruleType === 'rule8') {
+      const result = this.validationData !== null;
+      // console.log(
+      //   '[RuleModal] isUsingValidationData() for Rule 7:',
+      //   result,
+      //   'validationData:',
+      //   this.validationData
+      // );
+      return result;
+    }
     return this.validationData !== null;
   }
 
   hasEmptyResults(): boolean {
+    if (
+      this.validationData &&
+      (this.ruleType === 'rule7' || this.ruleType === 'rule8')
+    ) {
+      return this.validationData.validationResults.length === 0;
+    }
+
     if (
       this.rule2Data &&
       (this.ruleType === 'rule2' || this.ruleType === 'rule3')
@@ -1034,9 +1394,213 @@ export class RuleModalComponent implements OnInit {
   }
 
   async getFailedElements(): Promise<Array<{ revitElementId: string }>> {
+    console.log(
+      '[RuleModal] getFailedElements() called for ruleType:',
+      this.ruleType
+    );
+
     let failedElements: Array<{ revitElementId: string }> = [];
 
     if (
+      this.validationData &&
+      (this.ruleType === 'rule7' || this.ruleType === 'rule8')
+    ) {
+      // Handle Rule 7 failed elements using validationData
+      console.log(
+        '[RuleModal] getFailedElements - validationData:',
+        this.validationData
+      );
+      console.log(
+        '[RuleModal] getFailedElements - validationResults:',
+        this.validationData.validationResults
+      );
+
+      const failedResults = this.validationData.validationResults.filter(
+        (result) => !result.isValid && result.elementIds.length > 0
+      );
+      console.log(
+        '[RuleModal] getFailedElements - failedResults:',
+        failedResults
+      );
+
+      failedElements = failedResults.flatMap((result) =>
+        result.elementIds.map((elementId) => ({
+          revitElementId: elementId,
+        }))
+      );
+      console.log(
+        '[RuleModal] getFailedElements - failedElements:',
+        failedElements
+      );
+
+      console.log(
+        '[RuleModal] getFailedElements - Processing ACC Issues for Rule 7:',
+        {
+          totalFailedElements: failedElements.length,
+          elementIds: failedElements.map((e) => e.revitElementId),
+          willCreateIssues: failedElements.length > 0,
+        }
+      );
+
+      this.highlight = failedElements.length > 0;
+      console.log(
+        '[RuleModal] Rule 7 highlight set to:',
+        this.highlight,
+        'for',
+        failedElements.length,
+        'failed elements'
+      );
+
+      // Process ACC issues for Rule 7
+      if (failedElements.length > 0) {
+        console.log('[RuleModal] About to start ACC issue processing:', {
+          failedElementsLength: failedElements.length,
+          highlight: this.highlight,
+          ruleType: this.ruleType,
+        });
+
+        let successfulIssues = 0;
+        let processedIssues = 0;
+        const totalIssues = failedElements.length;
+
+        const BATCH_SIZE = 10;
+        const BATCH_DELAY = 1000;
+
+        const showToastIfComplete = () => {
+          processedIssues++;
+          if (processedIssues === totalIssues) {
+            if (successfulIssues > 0) {
+              const message =
+                successfulIssues === 1
+                  ? '1 issue created in ACC'
+                  : `${successfulIssues} issues created in ACC`;
+              this.toastService.showSuccess(message);
+            }
+            this.highlight = true;
+          }
+        };
+
+        const processBatch = async (
+          batch: Array<{ revitElementId: string }>
+        ) => {
+          console.log(
+            '[RuleModal] Processing batch for ACC issues:',
+            batch.map((e) => e.revitElementId)
+          );
+
+          const batchPromises = batch.map(async (element) => {
+            const revitId = element.revitElementId;
+
+            if (!revitId) {
+              showToastIfComplete();
+              return;
+            }
+
+            try {
+              console.log(
+                `[RuleModal] Processing element ${revitId} for Rule 7 ACC issue creation`
+              );
+
+              const processResult = await this.viewerService.processModel(
+                revitId
+              );
+              console.log(
+                `[RuleModal] processModel result for ${revitId}:`,
+                processResult
+              );
+
+              if (processResult) {
+                const result = this.generateIssuePayloadFromProcessResult(
+                  processResult,
+                  this.getResults()
+                );
+                console.log(
+                  `[RuleModal] Generated issue payload for ${revitId}:`,
+                  result
+                );
+
+                this.ruleService
+                  .createIssue(this.projectId!, this.accUserId, result)
+                  .subscribe({
+                    next: (response) => {
+                      console.log(
+                        `[RuleModal] ACC issue created successfully for ${revitId}:`,
+                        response
+                      );
+                      successfulIssues++;
+                      showToastIfComplete();
+                    },
+                    error: (error) => {
+                      console.error(
+                        `[RuleModal] Failed to create ACC issue for ${revitId}:`,
+                        error
+                      );
+                      showToastIfComplete();
+                    },
+                  });
+              } else {
+                console.warn(
+                  `[RuleModal] No process result for ${revitId}, skipping ACC issue creation`
+                );
+                showToastIfComplete();
+              }
+            } catch (error) {
+              console.error(`[RuleModal] Error processing ${revitId}:`, error);
+              showToastIfComplete();
+            }
+          });
+
+          await Promise.all(batchPromises);
+        };
+
+        const processAllBatches = async () => {
+          try {
+            console.log(
+              `[RuleModal] Starting ACC issue creation for ${failedElements.length} failed elements in batches of ${BATCH_SIZE}`
+            );
+
+            if (failedElements.length === 0) {
+              console.log(
+                '[RuleModal] No failed elements to process, skipping ACC issue creation'
+              );
+              return;
+            }
+
+            for (let i = 0; i < failedElements.length; i += BATCH_SIZE) {
+              const batch = failedElements.slice(i, i + BATCH_SIZE);
+              console.log(
+                `[RuleModal] Processing batch ${
+                  Math.floor(i / BATCH_SIZE) + 1
+                }/${Math.ceil(failedElements.length / BATCH_SIZE)}`
+              );
+              await processBatch(batch);
+
+              if (i + BATCH_SIZE < failedElements.length) {
+                await new Promise((resolve) =>
+                  setTimeout(resolve, BATCH_DELAY)
+                );
+              }
+            }
+
+            console.log('[RuleModal] All batches processed successfully');
+          } catch (error) {
+            console.error('[RuleModal] Error in processAllBatches:', error);
+          }
+        };
+
+        console.log(
+          '[RuleModal] About to start processAllBatches() for Rule 7'
+        );
+        processAllBatches().catch((error) => {
+          console.error('[RuleModal] Error in processAllBatches:', error);
+        });
+        console.log(
+          '[RuleModal] processAllBatches() started (async) for Rule 7'
+        );
+      }
+
+      return failedElements;
+    } else if (
       this.rule2Data &&
       (this.ruleType === 'rule2' || this.ruleType === 'rule3')
     ) {
@@ -1084,6 +1648,12 @@ export class RuleModalComponent implements OnInit {
 
     this.highlight = failedElements.length > 0;
 
+    console.log('[RuleModal] About to start ACC issue processing:', {
+      failedElementsLength: failedElements.length,
+      highlight: this.highlight,
+      ruleType: this.ruleType,
+    });
+
     let successfulIssues = 0;
     let processedIssues = 0;
     const totalIssues = failedElements.length;
@@ -1106,6 +1676,11 @@ export class RuleModalComponent implements OnInit {
     };
 
     const processBatch = async (batch: Array<{ revitElementId: string }>) => {
+      console.log(
+        '[RuleModal] Processing batch for ACC issues:',
+        batch.map((e) => e.revitElementId)
+      );
+
       const batchPromises = batch.map(async (element) => {
         const revitId = element.revitElementId;
 
@@ -1115,29 +1690,53 @@ export class RuleModalComponent implements OnInit {
         }
 
         try {
+          console.log(
+            `[RuleModal] Processing element ${revitId} for Rule 7 ACC issue creation`
+          );
+
           const processResult = await this.viewerService.processModel(revitId);
+          console.log(
+            `[RuleModal] processModel result for ${revitId}:`,
+            processResult
+          );
 
           if (processResult) {
             const result = this.generateIssuePayloadFromProcessResult(
               processResult,
               this.getResults()
             );
+            console.log(
+              `[RuleModal] Generated issue payload for ${revitId}:`,
+              result
+            );
 
             this.ruleService
               .createIssue(this.projectId!, this.accUserId, result)
               .subscribe({
-                next: () => {
+                next: (response) => {
+                  console.log(
+                    `[RuleModal] ACC issue created successfully for ${revitId}:`,
+                    response
+                  );
                   successfulIssues++;
                   showToastIfComplete();
                 },
-                error: () => {
+                error: (error) => {
+                  console.error(
+                    `[RuleModal] Failed to create ACC issue for ${revitId}:`,
+                    error
+                  );
                   showToastIfComplete();
                 },
               });
           } else {
+            console.warn(
+              `[RuleModal] No process result for ${revitId}, skipping ACC issue creation`
+            );
             showToastIfComplete();
           }
-        } catch {
+        } catch (error) {
+          console.error(`[RuleModal] Error processing ${revitId}:`, error);
           showToastIfComplete();
         }
       });
@@ -1146,18 +1745,47 @@ export class RuleModalComponent implements OnInit {
     };
 
     const processAllBatches = async () => {
-      for (let i = 0; i < failedElements.length; i += BATCH_SIZE) {
-        const batch = failedElements.slice(i, i + BATCH_SIZE);
-        await processBatch(batch);
+      try {
+        console.log(
+          `[RuleModal] Starting ACC issue creation for ${failedElements.length} failed elements in batches of ${BATCH_SIZE}`
+        );
 
-        if (i + BATCH_SIZE < failedElements.length) {
-          await new Promise((resolve) => setTimeout(resolve, BATCH_DELAY));
+        if (failedElements.length === 0) {
+          console.log(
+            '[RuleModal] No failed elements to process, skipping ACC issue creation'
+          );
+          return;
         }
+
+        for (let i = 0; i < failedElements.length; i += BATCH_SIZE) {
+          const batch = failedElements.slice(i, i + BATCH_SIZE);
+          console.log(
+            `[RuleModal] Processing batch ${
+              Math.floor(i / BATCH_SIZE) + 1
+            }/${Math.ceil(failedElements.length / BATCH_SIZE)}`
+          );
+          await processBatch(batch);
+
+          if (i + BATCH_SIZE < failedElements.length) {
+            await new Promise((resolve) => setTimeout(resolve, BATCH_DELAY));
+          }
+        }
+
+        console.log('[RuleModal] All batches processed successfully');
+      } catch (error) {
+        console.error('[RuleModal] Error in processAllBatches:', error);
       }
     };
 
-    processAllBatches().catch(() => {});
+    console.log('[RuleModal] About to start processAllBatches() for Rule 7');
+    processAllBatches().catch((error) => {
+      console.error('[RuleModal] Error in processAllBatches:', error);
+    });
+    console.log('[RuleModal] processAllBatches() started (async) for Rule 7');
 
+    console.log(
+      `[RuleModal] getFailedElements() returning ${failedElements.length} elements for Rule 7 ACC issue creation`
+    );
     return failedElements;
   }
 

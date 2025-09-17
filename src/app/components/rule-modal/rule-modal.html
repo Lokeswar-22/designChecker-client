@@ -62,6 +62,16 @@
                   class="fas fa-ruler-combined"
                   style="margin-right: 8px; color: #ff6b35"
                 ></i>
+                <i
+                  *ngIf="ruleType === 'rule7'"
+                  class="fas fa-ruler-combined"
+                  style="margin-right: 8px; color: #007bff"
+                ></i>
+                <i
+                  *ngIf="ruleType === 'rule8'"
+                  class="fas fa-check-circle"
+                  style="margin-right: 8px; color: #667eea"
+                ></i>
                 Regulatory Requirement
                 <span class="requirement-code">
                   {{
@@ -180,6 +190,11 @@
                   class="fas fa-table"
                   style="margin-right: 8px; color: #ff6b35"
                 ></i>
+                <i
+                  *ngIf="ruleType === 'rule8'"
+                  class="fas fa-table"
+                  style="margin-right: 8px; color: #667eea"
+                ></i>
                 {{
                   ruleType === "rule1"
                     ? "Doorway Accessibility Requirements"
@@ -192,6 +207,8 @@
                     : ruleType === "rule5"
                     ? "Lift Car Internal Dimensions"
                     : ruleType === "rule6"
+                    ? "Lift Lobby Accessibility Requirements"
+                    : ruleType === "rule8"
                     ? "Lift Lobby Accessibility Requirements"
                     : "Parking Accessibility Requirements"
                 }}
@@ -242,6 +259,11 @@
 
                         <!-- Rule 6: Lift lobby requirements -->
                         <ng-container *ngIf="ruleType === 'rule6'">
+                          {{ ruleInfo.thresholdsTable.rows[i][0] }}
+                        </ng-container>
+
+                        <!-- Rule 8: Box dimension validation -->
+                        <ng-container *ngIf="ruleType === 'rule8'">
                           {{ ruleInfo.thresholdsTable.rows[i][0] }}
                         </ng-container>
                       </td>
@@ -686,6 +708,49 @@
                 <span class="status-text">{{
                   rule2Data.parkingAnalysis.validationMessage
                 }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bollard Analysis Results for Rule 7 -->
+          <div
+            *ngIf="isRule7() && getRule7Data()"
+            class="bollard-analysis-section"
+          >
+            <h3>Bollard Distance Analysis Results</h3>
+            <div class="bollard-analysis-card">
+              <div class="bollard-analysis-grid">
+                <div class="analysis-item">
+                  <span class="analysis-label">Total Bollards</span>
+                  <span class="analysis-value">{{
+                    getRule7Data()!.summary.totalBollards_Count
+                  }}</span>
+                </div>
+                <div class="analysis-item">
+                  <span class="analysis-label">Total Pairs Analyzed</span>
+                  <span class="analysis-value">{{
+                    getRule7Data()!.summary.totalBollards_pairs
+                  }}</span>
+                </div>
+                <div class="analysis-item">
+                  <span class="analysis-label">Failed Validations</span>
+                  <span class="analysis-value failed">{{
+                    getRule7Data()!.summary.failedValidations
+                  }}</span>
+                </div>
+                <div class="analysis-item">
+                  <span class="analysis-label">Failed with Elements</span>
+                  <span class="analysis-value failed">{{
+                    getRule7Data()!.summary.failedWithElementIds
+                  }}</span>
+                </div>
+              </div>
+
+              <div class="validation-status">
+                <i class="fas fa-info-circle" style="color: #007bff"></i>
+                <span class="status-text">
+                  Minimum required distance: 900mm between adjacent bollards
+                </span>
               </div>
             </div>
           </div>

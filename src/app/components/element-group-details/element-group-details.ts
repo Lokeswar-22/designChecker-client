@@ -278,6 +278,18 @@ export class ElementGroupDetailsComponent implements OnInit, AfterViewInit {
     this.showRuleModal = true;
   }
 
+  onRule7Click() {
+    console.log('ElementGroupDetailsComponent: Rule 7 button clicked');
+    this.ruleType = 'rule7';
+    this.showRuleModal = true; // Go directly to main rule modal
+  }
+
+  onRule8Click() {
+    console.log('ElementGroupDetailsComponent: Rule 8 button clicked');
+    this.ruleType = 'rule8';
+    this.showRuleModal = true;
+  }
+
   onCloseRuleModal() {
     this.showRuleModal = false;
   }

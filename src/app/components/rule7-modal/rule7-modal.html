@@ -1,0 +1,110 @@
+<div class="modal-overlay" *ngIf="isVisible" (click)="onBackdropClick($event)">
+  <div class="modal-content">
+    <!-- Acknowledgement Popup -->
+    <div class="acknowledgement-content">
+      <div class="modal-header">
+        <h2>
+          <i
+            class="fas fa-ruler-combined"
+            style="margin-right: 10px; color: #007bff"
+          ></i>
+          Rule 7 - Bollard Distance Analysis
+        </h2>
+        <button class="close-button" (click)="onCancel()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="acknowledgement-section">
+          <div class="rule-info-card">
+            <div class="info-section">
+              <h3>Rule Description</h3>
+              <p>
+                This rule analyzes the distances between adjacent bollards in
+                the model. It identifies bollards within the "Specialty
+                Equipment" category, specifically "TS_Square Bollard" family
+                elements, and measures face-to-face distances between
+                consecutive neighbors along horizontal and vertical lines.
+              </p>
+            </div>
+
+            <div class="info-section">
+              <h3>Category</h3>
+              <span class="category-badge">Specialty Equipment</span>
+            </div>
+
+            <!-- Analysis Parameters -->
+            <div class="info-section">
+              <h3>Analysis Parameters</h3>
+              <div class="parameters-grid">
+                <div class="parameter-item">
+                  <span class="parameter-label">Pairing Mode:</span>
+                  <span class="parameter-value">Chain Adjacency</span>
+                </div>
+                <div class="parameter-item">
+                  <span class="parameter-label">Horizontal Overlap:</span>
+                  <span class="parameter-value">5 mm minimum</span>
+                </div>
+                <div class="parameter-item">
+                  <span class="parameter-label">Vertical Overlap:</span>
+                  <span class="parameter-value">5 mm minimum</span>
+                </div>
+                <div class="parameter-item">
+                  <span class="parameter-label">Line Tolerance:</span>
+                  <span class="parameter-value">3 mm</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="info-section">
+              <h3>Expected Output</h3>
+              <ul class="output-list">
+                <li>Console log with detailed analysis results</li>
+                <li>
+                  Distance measurements in both model units and millimeters
+                </li>
+                <li>
+                  Face-to-face distances using both AABB and raycast methods
+                </li>
+                <li>Summary of directed pairs and unique pairs found</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Error Display -->
+          <div *ngIf="error" class="error-section">
+            <div class="error-message">
+              <i class="fas fa-exclamation-triangle"></i>
+              <span>{{ error }}</span>
+            </div>
+          </div>
+
+          <!-- Loading State -->
+          <div *ngIf="loading" class="loading-section">
+            <div class="loading-spinner">
+              <i class="fas fa-spinner fa-spin"></i>
+              <span>Analyzing bollard distances...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="cancel-button" (click)="onCancel()" [disabled]="loading">
+          <i class="fas fa-times"></i>
+          Cancel
+        </button>
+        <button
+          class="continue-button"
+          (click)="onContinue()"
+          [disabled]="loading"
+        >
+          <i class="fas fa-play" *ngIf="!loading"></i>
+          <i class="fas fa-spinner fa-spin" *ngIf="loading"></i>
+          {{ loading ? "Analyzing..." : "Continue" }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

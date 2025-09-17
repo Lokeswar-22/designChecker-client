@@ -17,6 +17,8 @@ export class SidebarComponent {
   @Output() rule4Click = new EventEmitter<void>();
   @Output() rule5Click = new EventEmitter<void>();
   @Output() rule6Click = new EventEmitter<void>();
+  @Output() rule7Click = new EventEmitter<void>();
+  @Output() rule8Click = new EventEmitter<void>();
 
   showRulesSubmenu = false;
 
@@ -50,5 +52,13 @@ export class SidebarComponent {
 
   onRule6Click() {
     this.rule6Click.emit();
+  }
+
+  onRule7Click() {
+    this.rule7Click.emit();
+  }
+
+  onRule8Click() {
+    this.rule8Click.emit();
   }
 }
