@@ -6,17 +6,17 @@ import { Subscription } from 'rxjs';
 import { AuthService, LoginRequest, RegisterRequest } from '../../services/auth.service';
 import { AutodeskAuthService } from '../../services/autodesk-auth.service';
 import { LocalService } from '../../services/local.service';
-import { SuccessModalComponent } from '../success-modal/success-modal';
-import { SyncModalComponent } from '../sync-modal/sync-modal';
-import { AutodeskLoadingComponent } from '../autodesk-loading/autodesk-loading';
+import { SuccessModalComponent } from '../success-modal/success-modal.component';
+import { SyncModalComponent } from '../sync-modal/sync-modal.component';
+import { AutodeskLoadingComponent } from '../autodesk-loading/autodesk-loading.component';
 import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
   imports: [CommonModule, FormsModule, SuccessModalComponent, SyncModalComponent, AutodeskLoadingComponent],
-  templateUrl: './login.html',
-  styleUrl: './login.scss'
+  templateUrl: './login.component.html',
+  styleUrl: './login.component.scss'
 })
 export class LoginComponent implements OnInit, OnDestroy {
   loginData: LoginRequest = {
@@ -56,7 +56,6 @@ export class LoginComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    // Subscribe to Autodesk authentication status
     this.authSubscription = this.autodeskAuthService.authStatus$.subscribe(status => {
       if (status.isAuthenticated) {
         this.showSuccessModal = false;
@@ -64,11 +63,8 @@ export class LoginComponent implements OnInit, OnDestroy {
         this.showSyncModal = true;
         this.accUserId = status.accUserId || '';
       } else if (status.popupClosed && this.showAutodeskLoading) {
-        // Popup is closed, show waiting message
         this.errorMessage = '';
-        // Keep loading visible while waiting for status check
       } else if (this.showAutodeskLoading && !status.popupClosed) {
-        // If authentication failed, hide loading and show error
         this.showAutodeskLoading = false;
         this.errorMessage = 'Autodesk authentication failed. Please try again.';
       }
@@ -76,11 +72,9 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    // Clean up subscription
     if (this.authSubscription) {
       this.authSubscription.unsubscribe();
     }
-    // Close any open auth windows
     this.autodeskAuthService.closeAuthWindow();
   }
 
@@ -101,109 +95,35 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     this.authService.login(loginRequest).subscribe({
       next: (response) => {
-        console.log('Login response:', response);
         this.isLoading = false;
-        
-        // Check if the response indicates failure
+
         if (response.success === false) {
-          // Handle failed login response
-          const errorMsg = response.data?.message || response.message || 'Login failed. Please try again.';
-          this.errorMessage = errorMsg;
-          console.error('Login failed:', errorMsg);
-          return; // Don't proceed to next steps
+          this.errorMessage = response.data?.message || response.message || 'Login failed. Please try again.';
+          return;
         }
-        
-        // Handle successful login
-        console.log('Login successful:', response);
-        
-        // Handle different user data formats based on response structure
+
         if (response.data && response.data.user) {
-          // New response structure with data wrapper
           this.userData = response.data.user;
         } else if (response.user) {
-          // Old response structure
           this.userData = response.user;
         } else {
-          // Fallback
           this.userData = {
             username: loginRequest.username,
             email: loginRequest.username
           };
         }
-        
-        // Skip ACC status check and directly show Connect modal
+
         this.showSuccessModal = true;
       },
       error: (error) => {
-        console.error('Login failed:', error);
         this.isLoading = false;
-        
-        // Handle different error response formats
-        if (error.error && error.error.data && error.error.data.message) {
-          // Handle the specific API response format
+        if (error.error?.data?.message) {
           this.errorMessage = error.error.data.message;
-        } else if (error.error && error.error.message) {
-          // Handle error with message in error object
+        } else if (error.error?.message) {
           this.errorMessage = error.error.message;
-        } else if (error.message) {
-          // Handle error with message property
-          this.errorMessage = error.message;
         } else {
-          // Fallback error message
-          this.errorMessage = 'Login failed. Please try again.';
+          this.errorMessage = error.message || 'Login failed. Please try again.';
         }
-      }
-    });
-  }
-
-  private checkAccStatus() {
-    this.isLoading = true;
-    this.errorMessage = '';
-
-    this.authService.checkAccStatus().subscribe({
-      next: (response) => {
-        console.log('ACC status check response:', response);
-        this.isLoading = false;
-
-        // Only show connect modal if user is not synced with ACC
-        if (
-          response.success === false &&
-          response.message === 'User is not synced with ACC' &&
-          response.data &&
-          response.data.isAccSynced === false &&
-          response.data.isTokenValid === false
-        ) {
-          // Show connect (Autodesk login) modal
-          this.showSuccessModal = true;
-          return;
-        }
-
-        // User is already synced and token is valid
-        if (response.success && response.data) {
-          const { isAccSynced, isTokenValid, accUserId } = response.data;
-
-          if (isAccSynced && isTokenValid) {
-            // Store the accUserId in user data if available
-            if (accUserId) {
-              const currentUserData = this.localService.getUserData() || {};
-              const updatedUserData = { ...currentUserData, accUserId: accUserId };
-              this.localService.setUserData(updatedUserData);
-              console.log('LoginComponent: Stored accUserId from ACC status check:', updatedUserData);
-            }
-            // Navigate to documents
-            this.router.navigate(['/documents']);
-            return;
-          }
-        }
-
-        // For all other cases, show a generic error
-        this.errorMessage = response.message || 'Unable to check ACC status.';
-      },
-      error: (error) => {
-        console.error('ACC status check failed:', error);
-        this.isLoading = false;
-        // Show error message, do not show connect modal
-        this.errorMessage = 'Unable to check ACC status. Please try again.';
       }
     });
   }
@@ -234,7 +154,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   onRegister() {
-    if (!this.registerData.firstName || !this.registerData.lastName || 
+    if (!this.registerData.firstName || !this.registerData.lastName ||
         !this.registerData.email || !this.registerData.password || !this.confirmPassword) {
       this.errorMessage = 'Please fill in all fields';
       return;
@@ -254,15 +174,10 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.errorMessage = '';
 
     this.authService.register(this.registerData).subscribe({
-      next: (response) => {
-        console.log('Registration successful:', response);
+      next: () => {
         this.isLoading = false;
         this.successMessage = 'Registration successful! Please login with your new account.';
-        
-        // Show success toast
         this.toastService.showSuccess('Registration successful! Please login with your new account.');
-        
-        // Reset forms and switch to login mode
         setTimeout(() => {
           this.resetForms();
           this.isLoginMode = true;
@@ -270,17 +185,13 @@ export class LoginComponent implements OnInit, OnDestroy {
         }, 2000);
       },
       error: (error) => {
-        console.error('Registration failed:', error);
         this.isLoading = false;
-        
-        if (error.error && error.error.data && error.error.data.message) {
+        if (error.error?.data?.message) {
           this.errorMessage = error.error.data.message;
-        } else if (error.error && error.error.message) {
+        } else if (error.error?.message) {
           this.errorMessage = error.error.message;
-        } else if (error.message) {
-          this.errorMessage = error.message;
         } else {
-          this.errorMessage = 'Registration failed. Please try again.';
+          this.errorMessage = error.message || 'Registration failed. Please try again.';
         }
       }
     });
@@ -289,7 +200,6 @@ export class LoginComponent implements OnInit, OnDestroy {
   onConnect() {
     this.showSuccessModal = false;
     this.showAutodeskLoading = true;
-    // Start the Autodesk three-legged authentication
     this.autodeskAuthService.initiateAutodeskAuth();
   }
 
@@ -299,46 +209,29 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   onSync(accUserId: string) {
-    console.log('accUserId:', accUserId);
     this.showSyncModal = false;
-    
-    // Store the accUserId in user data
     const currentUserData = this.localService.getUserData() || {};
     const updatedUserData = { ...currentUserData, accUserId: accUserId };
     this.localService.setUserData(updatedUserData);
-    console.log('LoginComponent: Stored accUserId in user data:', updatedUserData);
-    
-    // Ensure authentication state is properly set
     this.authService.refreshAuthState();
-    console.log('LoginComponent: After sync - Auth service isAuthenticated:', this.authService.isAuthenticated());
-    console.log('LoginComponent: After sync - Access token:', this.authService.getAccessToken());
-    
     this.router.navigate(['/documents']);
   }
 
   onCloseSyncModal() {
     this.showSyncModal = false;
-    
-    // Store the accUserId in user data if available
     if (this.accUserId) {
       const currentUserData = this.localService.getUserData() || {};
       const updatedUserData = { ...currentUserData, accUserId: this.accUserId };
       this.localService.setUserData(updatedUserData);
-      console.log('LoginComponent: Stored accUserId in user data (close modal):', updatedUserData);
     }
-    
     this.router.navigate(['/documents']);
   }
 
   onManualCheck() {
-    // Update loading message to show waiting
     this.errorMessage = '';
-    
-    // Manually check authentication status
     this.autodeskAuthService.manualCheckAuthStatus().subscribe({
       next: (response) => {
-        console.log('Manual check response:', response);
-        if (response.message && response.message.includes('Authentication successful')) {
+        if (response.message?.includes('Authentication successful')) {
           this.showAutodeskLoading = false;
           this.showSyncModal = true;
           this.accUserId = response.accUserId || '';
@@ -346,26 +239,21 @@ export class LoginComponent implements OnInit, OnDestroy {
           this.errorMessage = 'Authentication not completed. Please complete the process in the popup window.';
         }
       },
-      error: (error) => {
-        console.error('Manual check error:', error);
+      error: () => {
         this.errorMessage = 'Unable to check authentication status. Please try again.';
       }
     });
   }
 
   downloadUserGuide() {
-    // Create a link element to trigger the download
     const link = document.createElement('a');
     link.href = 'assets/pdf/design-qc-user-guide.pdf';
     link.download = 'Design-QC-User-Guide.pdf';
     link.target = '_blank';
-    
-    // Append to body, click, and remove
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
-    // Show success message
     this.toastService.showSuccess('User Guide download started!');
   }
-} 
+}
+

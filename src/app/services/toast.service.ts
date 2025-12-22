@@ -61,7 +61,6 @@ export class ToastService {
     const currentToasts = this.toastsSubject.value;
     this.toastsSubject.next([...currentToasts, toast]);
 
-    // Auto-remove toast after duration
     if (toast.duration) {
       setTimeout(() => {
         this.removeToast(toast.id);
@@ -70,6 +69,6 @@ export class ToastService {
   }
 
   private generateId(): string {
-    return Math.random().toString(36).substr(2, 9);
+    return Math.random().toString(36).substring(2, 9);
   }
-} 
+}

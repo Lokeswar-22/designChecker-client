@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DocumentsService } from '../../services/documents.service';
 
@@ -6,10 +6,10 @@ import { DocumentsService } from '../../services/documents.service';
   selector: 'app-elements-modal',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './elements-modal.html',
-  styleUrl: './elements-modal.scss'
+  templateUrl: './elements-modal.component.html',
+  styleUrl: './elements-modal.component.scss'
 })
-export class ElementsModalComponent implements OnInit {
+export class ElementsModalComponent implements OnInit, OnChanges {
   @Input() isVisible: boolean = false;
   @Input() elementGroupId: string = '';
   @Input() accUserId: string = '';
@@ -36,30 +36,18 @@ export class ElementsModalComponent implements OnInit {
   }
 
   loadElements() {
-    console.log('ElementsModalComponent: Loading elements for category:', this.categoryName);
-    console.log('ElementsModalComponent: elementGroupId:', this.elementGroupId);
-    console.log('ElementsModalComponent: accUserId:', this.accUserId);
-    
     this.loading = true;
     this.error = '';
     this.elements = [];
 
     const propertyFilter = `property.name.category==${this.categoryName}`;
-    console.log('ElementsModalComponent: propertyFilter:', propertyFilter);
 
     this.documentsService.getElementsByCategory(this.elementGroupId, this.accUserId, propertyFilter).subscribe({
       next: (response: any) => {
-        console.log('ElementsModalComponent: Elements response:', response);
-        
-        // Handle different response structures dynamically
         this.elements = this.extractElementsFromResponse(response);
-        console.log('ElementsModalComponent: Elements loaded:', this.elements.length);
-        
         this.loading = false;
       },
-      error: (error: any) => {
-        console.error('ElementsModalComponent: Error loading elements:', error);
-        console.error('ElementsModalComponent: Error details:', error.error || error.message);
+      error: () => {
         this.error = 'Failed to load elements';
         this.loading = false;
       }
@@ -68,34 +56,15 @@ export class ElementsModalComponent implements OnInit {
 
   extractElementsFromResponse(response: any): any[] {
     if (!response) return [];
-
-    // Try different possible response structures
-    if (response.elementsByElementGroup?.results) {
-      return response.elementsByElementGroup.results;
-    }
-    
-    if (response.results) {
-      return response.results;
-    }
-    
-    if (response.elements) {
-      return response.elements;
-    }
-    
-    if (Array.isArray(response)) {
-      return response;
-    }
-    
-    // If response is a single object, wrap it in an array
-    if (typeof response === 'object' && response !== null) {
-      return [response];
-    }
-    
+    if (response.elementsByElementGroup?.results) return response.elementsByElementGroup.results;
+    if (response.results) return response.results;
+    if (response.elements) return response.elements;
+    if (Array.isArray(response)) return response;
+    if (typeof response === 'object' && response !== null) return [response];
     return [];
   }
 
   onClose() {
-    console.log('ElementsModalComponent: Modal closed');
     this.close.emit();
   }
 
@@ -121,49 +90,27 @@ export class ElementsModalComponent implements OnInit {
 
   getAllProperties(element: any): any[] {
     if (!element) return [];
-    
-    // Handle different property structures
-    if (element.properties?.results) {
-      return element.properties.results;
-    }
-    
-    if (element.properties) {
-      return Array.isArray(element.properties) ? element.properties : [element.properties];
-    }
-    
-    if (element.attributes) {
-      return Array.isArray(element.attributes) ? element.attributes : [element.attributes];
-    }
-    
-    // If element itself has properties as direct keys
-    const directProperties = [];
-    for (const [key, value] of Object.entries(element)) {
-      if (key !== 'id' && key !== 'name' && key !== 'properties' && key !== 'attributes') {
-        directProperties.push({
-          name: key,
-          value: value,
-          definition: { units: null }
-        });
-      }
-    }
-    
-    return directProperties;
+    if (element.properties?.results) return element.properties.results;
+    if (element.properties) return Array.isArray(element.properties) ? element.properties : [element.properties];
+    if (element.attributes) return Array.isArray(element.attributes) ? element.attributes : [element.attributes];
+
+    return Object.entries(element)
+      .filter(([key]) => !['id', 'name', 'properties', 'attributes'].includes(key))
+      .map(([key, value]) => ({
+        name: key,
+        value: value,
+        definition: { units: null }
+      }));
   }
 
   getCommonPropertyNames(): string[] {
     if (this.elements.length === 0) return [];
-    
     const allPropertyNames = new Set<string>();
-    
     this.elements.forEach(element => {
-      const properties = this.getAllProperties(element);
-      properties.forEach(prop => {
-        if (prop.name) {
-          allPropertyNames.add(prop.name);
-        }
+      this.getAllProperties(element).forEach(prop => {
+        if (prop.name) allPropertyNames.add(prop.name);
       });
     });
-    
     return Array.from(allPropertyNames).sort();
   }
 
@@ -176,11 +123,11 @@ export class ElementsModalComponent implements OnInit {
   }
 
   getPropertyDisplayName(propertyName: string): string {
-    // Convert camelCase or snake_case to Title Case
     return propertyName
       .replace(/([A-Z])/g, ' $1')
       .replace(/_/g, ' ')
       .replace(/^\w/, c => c.toUpperCase())
       .trim();
   }
-} 
+}
+

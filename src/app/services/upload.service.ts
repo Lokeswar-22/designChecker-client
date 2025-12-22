@@ -11,25 +11,15 @@ export interface UploadHub {
     extension: {
       type: string;
       version: string;
-      schema: {
-        href: string;
-      };
+      schema: { href: string; };
       data: any;
     };
     region: string;
   };
-  links: {
-    self: {
-      href: string;
-    };
-  };
+  links: { self: { href: string; }; };
   relationships: {
     projects: {
-      links: {
-        related: {
-          href: string;
-        };
-      };
+      links: { related: { href: string; }; };
     };
   };
 }
@@ -43,117 +33,25 @@ export interface UploadProject {
     extension: {
       type: string;
       version: string;
-      schema: {
-        href: string;
-      };
-      data: {
-        projectType: string;
-      };
+      schema: { href: string; };
+      data: { projectType: string; };
     };
   };
   links: {
-    self: {
-      href: string;
-    };
-    webView: {
-      href: string;
-    };
+    self: { href: string; };
+    webView: { href: string; };
   };
   relationships: {
     hub: {
-      data: {
-        type: string;
-        id: string;
-      };
-      links: {
-        related: {
-          href: string;
-        };
-      };
+      data: { type: string; id: string; };
+      links: { related: { href: string; }; };
     };
     rootFolder: {
-      data: {
-        type: string;
-        id: string;
-      };
-      meta: {
-        link: {
-          href: string;
-        };
-      };
+      data: { type: string; id: string; };
+      meta: { link: { href: string; }; };
     };
     topFolders: {
-      links: {
-        related: {
-          href: string;
-        };
-      };
-    };
-    issues: {
-      data: {
-        type: string;
-        id: string;
-      };
-      meta: {
-        link: {
-          href: string;
-        };
-      };
-    };
-    submittals: {
-      data: {
-        type: string;
-        id: string;
-      };
-      meta: {
-        link: {
-          href: string;
-        };
-      };
-    };
-    rfis: {
-      data: {
-        type: string;
-        id: string;
-      };
-      meta: {
-        link: {
-          href: string;
-        };
-      };
-    };
-    markups: {
-      data: {
-        type: string;
-        id: string;
-      };
-      meta: {
-        link: {
-          href: string;
-        };
-      };
-    };
-    cost: {
-      data: {
-        type: string;
-        id: string;
-      };
-      meta: {
-        link: {
-          href: string;
-        };
-      };
-    };
-    locations: {
-      data: {
-        type: string;
-        id: string;
-      };
-      meta: {
-        link: {
-          href: string;
-        };
-      };
+      links: { related: { href: string; }; };
     };
   };
 }
@@ -176,9 +74,7 @@ export interface UploadFolder {
     extension: {
       type: string;
       version: string;
-      schema: {
-        href: string;
-      };
+      schema: { href: string; };
       data: {
         visibleTypes: string[];
         actions: string[];
@@ -190,73 +86,29 @@ export interface UploadFolder {
     };
   };
   links: {
-    self: {
-      href: string;
-    };
-    webView: {
-      href: string;
-    };
+    self: { href: string; };
+    webView: { href: string; };
   };
   relationships: {
     contents: {
-      links: {
-        related: {
-          href: string;
-        };
-      };
+      links: { related: { href: string; }; };
     };
     parent: {
-      data: {
-        type: string;
-        id: string;
-      };
-      links: {
-        related: {
-          href: string;
-        };
-      };
-    };
-    refs: {
-      links: {
-        self: {
-          href: string;
-        };
-        related: {
-          href: string;
-        };
-      };
-    };
-    links: {
-      links: {
-        self: {
-          href: string;
-        };
-      };
+      data: { type: string; id: string; };
+      links: { related: { href: string; }; };
     };
   };
 }
 
 export interface UploadTopFoldersResponse {
-  jsonapi: {
-    version: string;
-  };
-  links: {
-    self: {
-      href: string;
-    };
-  };
+  jsonapi: { version: string; };
+  links: { self: { href: string; }; };
   data: UploadFolder[];
 }
 
 export interface UploadFolderContentsResponse {
-  jsonapi: {
-    version: string;
-  };
-  links: {
-    self: {
-      href: string;
-    };
-  };
+  jsonapi: { version: string; };
+  links: { self: { href: string; }; };
   data: UploadFolder[];
 }
 
@@ -269,44 +121,21 @@ export type UploadProjectsResponse = UploadProject[];
 export class UploadService {
   private baseUrl = environment.apiBaseUrl;
 
-  constructor(
-    private http: HttpClient
-  ) {}
+  constructor(private http: HttpClient) {}
 
   getUploadHubs(accUserId: string): Observable<UploadHubsResponse> {
-    console.log('UploadService: Fetching upload hubs for accUserId:', accUserId);
-    
-    // Make direct API call without authentication headers
-    const url = `${this.baseUrl}/hubs/upload?accUserId=${accUserId}`;
-    console.log('UploadService: Making API call to:', url);
-    
-    return this.http.get<UploadHubsResponse>(url);
+    return this.http.get<UploadHubsResponse>(`${this.baseUrl}/hubs/upload?accUserId=${accUserId}`);
   }
 
   getUploadProjects(hubId: string, accUserId: string): Observable<UploadProjectsResponse> {
-    console.log('UploadService: Fetching upload projects for hubId:', hubId, 'accUserId:', accUserId);
-    
-    const url = `${this.baseUrl}/hubs/${hubId}/projects/upload?accUserId=${accUserId}`;
-    console.log('UploadService: Making API call to:', url);
-    
-    return this.http.get<UploadProjectsResponse>(url);
+    return this.http.get<UploadProjectsResponse>(`${this.baseUrl}/hubs/${hubId}/projects/upload?accUserId=${accUserId}`);
   }
 
   getUploadTopFolders(hubId: string, projectId: string, accUserId: string): Observable<UploadTopFoldersResponse> {
-    console.log('UploadService: Fetching upload top folders for hubId:', hubId, 'projectId:', projectId, 'accUserId:', accUserId);
-    
-    const url = `${this.baseUrl}/hubs/${hubId}/projects/${projectId}/top-folders?accUserId=${accUserId}`;
-    console.log('UploadService: Making API call to:', url);
-    
-    return this.http.get<UploadTopFoldersResponse>(url);
+    return this.http.get<UploadTopFoldersResponse>(`${this.baseUrl}/hubs/${hubId}/projects/${projectId}/top-folders?accUserId=${accUserId}`);
   }
 
   getUploadFolderContents(projectId: string, folderId: string, accUserId: string): Observable<UploadFolderContentsResponse> {
-    console.log('UploadService: Fetching folder contents for projectId:', projectId, 'folderId:', folderId, 'accUserId:', accUserId);
-    
-    const url = `${this.baseUrl}/hubs/projects/${projectId}/folders/${folderId}/contents?accUserId=${accUserId}`;
-    console.log('UploadService: Making API call to:', url);
-    
-    return this.http.get<UploadFolderContentsResponse>(url);
+    return this.http.get<UploadFolderContentsResponse>(`${this.baseUrl}/hubs/projects/${projectId}/folders/${folderId}/contents?accUserId=${accUserId}`);
   }
-} 
+}

@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
@@ -7,7 +7,7 @@ export interface RuleCheckRequest {
   elementGroupId: string;
   accUserId: string;
   category: string;
-  projectId:string
+  projectId: string;
 }
 
 export interface RuleResult {
@@ -28,9 +28,9 @@ export interface RuleSummary {
 
 export interface RuleCheckResponse {
   rule: string;
-  results?: RuleResult[]; // Direct results for Rule 2
-  summary?: RuleSummary; // Direct summary for Rule 2
-  result?: { // Nested structure for Rule 1
+  results?: RuleResult[];
+  summary?: RuleSummary;
+  result?: {
     results: RuleResult[];
     summary: RuleSummary;
   };
@@ -77,7 +77,7 @@ export interface IssuesResponse {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class RuleService {
   private baseUrl = environment.apiBaseUrl;
@@ -86,78 +86,125 @@ export class RuleService {
 
   constructor(private http: HttpClient) {}
 
-  checkRule1(elementGroupId: string, accUserId: string, projectId: string): Observable<RuleCheckResponse> {
+  checkRule1(
+    elementGroupId: string,
+    accUserId: string,
+    projectId: string
+  ): Observable<RuleCheckResponse> {
     this.projectID = projectId;
     this.accUserID = accUserId;
-
-    console.log("PROJECT ID",this.projectID)
     const requestBody: RuleCheckRequest = {
       elementGroupId,
       accUserId,
       projectId,
-      category: 'property.name.category==Doors'
+      category: 'property.name.category==Doors',
     };
-
-    return this.http.post<RuleCheckResponse>(`${this.baseUrl}/rule-check/rule1`, requestBody);
+    return this.http.post<RuleCheckResponse>(
+      `${this.baseUrl}/rule-check/rule1`,
+      requestBody
+    );
   }
 
-  checkRule2(elementGroupId: string, accUserId: string, projectId: string): Observable<RuleCheckResponse> {
+  checkRule2(
+    elementGroupId: string,
+    accUserId: string,
+    projectId: string
+  ): Observable<RuleCheckResponse> {
     this.projectID = projectId;
     this.accUserID = accUserId;
     const requestBody: RuleCheckRequest = {
       elementGroupId,
       accUserId,
       projectId,
-      category: 'property.name.category==Ramps'
+      category: 'property.name.category==Ramps',
     };
-    return this.http.post<RuleCheckResponse>(`${this.baseUrl}/rule-check/rule2`, requestBody);
+    return this.http.post<RuleCheckResponse>(
+      `${this.baseUrl}/rule-check/rule2`,
+      requestBody
+    );
   }
 
-  checkRule3(elementGroupId: string, accUserId: string, projectId: string): Observable<RuleCheckResponse> {
+  checkRule3(
+    elementGroupId: string,
+    accUserId: string,
+    projectId: string
+  ): Observable<RuleCheckResponse> {
     this.projectID = projectId;
     this.accUserID = accUserId;
     const requestBody: RuleCheckRequest = {
       elementGroupId,
       accUserId,
       projectId,
-      category: 'property.name.category==Ramps'
+      category: 'property.name.category==Ramps',
     };
-    return this.http.post<RuleCheckResponse>(`${this.baseUrl}/rule-check/rule3`, requestBody);
+    return this.http.post<RuleCheckResponse>(
+      `${this.baseUrl}/rule-check/rule3`,
+      requestBody
+    );
   }
 
-  checkRule4(elementGroupId: string, accUserId: string, projectId: string): Observable<RuleCheckResponse> {
+  checkRule4(
+    elementGroupId: string,
+    accUserId: string,
+    projectId: string
+  ): Observable<RuleCheckResponse> {
     this.projectID = projectId;
     this.accUserID = accUserId;
     const requestBody: RuleCheckRequest = {
       elementGroupId,
       accUserId,
       projectId,
-      category: 'property.name.category==Stairs'
+      category: 'property.name.category==Stairs',
     };
-    return this.http.post<RuleCheckResponse>(`${this.baseUrl}/rule-check/rule4`, requestBody);
+    return this.http.post<RuleCheckResponse>(
+      `${this.baseUrl}/rule-check/rule4`,
+      requestBody
+    );
   }
 
-  checkRule5(elementGroupId: string, accUserId: string, projectId: string): Observable<RuleCheckResponse> {
+  checkRule5(
+    elementGroupId: string,
+    accUserId: string,
+    projectId: string
+  ): Observable<RuleCheckResponse> {
     this.projectID = projectId;
     this.accUserID = accUserId;
     const requestBody: RuleCheckRequest = {
       elementGroupId,
       accUserId,
       projectId,
-      category: 'property.name.category==Walls'
+      category: 'property.name.category==Walls',
     };
-    return this.http.post<RuleCheckResponse>(`${this.baseUrl}/rule-check/rule5`, requestBody);
+    return this.http.post<RuleCheckResponse>(
+      `${this.baseUrl}/rule-check/rule5`,
+      requestBody
+    );
   }
 
   getProjectById(accUserId: string, projectName: string): Observable<any> {
-    return this.http.get(`${this.baseUrl}/hubs/project-id?accUserId=${accUserId}&projectName=${encodeURIComponent(projectName)}`);
+    return this.http.get(
+      `${
+        this.baseUrl
+      }/hubs/project-id?accUserId=${accUserId}&projectName=${encodeURIComponent(
+        projectName
+      )}`
+    );
   }
 
   getIssues(): Observable<IssuesResponse> {
-    return this.http.get<IssuesResponse>(`${this.baseUrl}/hubs/projects/${this.projectID}/issues?accUserId=${this.accUserID}`);
+    return this.http.get<IssuesResponse>(
+      `${this.baseUrl}/hubs/projects/${this.projectID}/issues?accUserId=${this.accUserID}`
+    );
   }
 
-  createIssue(projectId: string, accUserId: string, issueData: any): Observable<any> {
-    return this.http.post(`${this.baseUrl}/hubs/projects/${projectId}/issues?accUserId=${accUserId}`, issueData);
+  createIssue(
+    projectId: string,
+    accUserId: string,
+    issueData: any
+  ): Observable<any> {
+    return this.http.post(
+      `${this.baseUrl}/hubs/projects/${projectId}/issues?accUserId=${accUserId}`,
+      issueData
+    );
   }
-} 
+}

@@ -2,45 +2,32 @@ import { HttpInterceptorFn, HttpRequest, HttpHandlerFn, HttpErrorResponse } from
 import { inject } from '@angular/core';
 import { Observable, throwError, BehaviorSubject } from 'rxjs';
 import { catchError, filter, take, switchMap } from 'rxjs/operators';
+import { LocalService } from '../services/local.service';
 import { AuthService } from '../services/auth.service';
 import { environment } from '../../environments/environment';
 
-// Global state for refresh token handling
 let isRefreshing = false;
 const refreshTokenSubject = new BehaviorSubject<string | null>(null);
 
-export const AuthInterceptor: HttpInterceptorFn = (
+export const ReqInterceptor: HttpInterceptorFn = (
   request: HttpRequest<unknown>,
   next: HttpHandlerFn
 ): Observable<any> => {
+  const localService = inject(LocalService);
   const authService = inject(AuthService);
 
-  console.log('AuthInterceptor: Intercepting request to:', request.url);
-  console.log('AuthInterceptor: Request method:', request.method);
-
-  // Skip token for auth endpoints
   if (isAuthEndpoint(request.url)) {
-    console.log('AuthInterceptor: Skipping auth endpoint:', request.url);
     return next(request);
   }
 
-  // Add token to request
-  const token = authService.getAccessToken();
-  console.log('AuthInterceptor: Token available:', !!token);
-  console.log('AuthInterceptor: Token value:', token);
-  
+  const token = localService.getAccessToken();
   if (token) {
     request = addToken(request, token);
-    console.log('AuthInterceptor: Added token to request headers:', request.headers.get('Authorization'));
-  } else {
-    console.log('AuthInterceptor: No token available, proceeding without Authorization header');
   }
 
   return next(request).pipe(
     catchError((error: HttpErrorResponse) => {
-      console.log('AuthInterceptor: Request failed with status:', error.status);
       if (error.status === 401 && !isRefreshing) {
-        console.log('AuthInterceptor: Handling 401 error');
         return handle401Error(request, next, authService);
       }
       return throwError(() => error);
@@ -50,15 +37,13 @@ export const AuthInterceptor: HttpInterceptorFn = (
 
 function addToken(request: HttpRequest<any>, token: string): HttpRequest<any> {
   return request.clone({
-    setHeaders: {
-      Authorization: `Bearer ${token}`
-    }
+    setHeaders: { Authorization: `Bearer ${token}` }
   });
 }
 
 function isAuthEndpoint(url: string): boolean {
-  return url.includes('/api/auth/') || 
-         url.includes(environment.authEndpoints.login) || 
+  return url.includes('/api/auth/') ||
+         url.includes(environment.authEndpoints.login) ||
          url.includes(environment.accAuthEndpoints.login) ||
          url.includes(environment.accAuthEndpoints.status) ||
          url.includes(environment.accAuthEndpoints.sync) ||
@@ -66,8 +51,8 @@ function isAuthEndpoint(url: string): boolean {
 }
 
 function handle401Error(
-  request: HttpRequest<any>, 
-  next: HttpHandlerFn, 
+  request: HttpRequest<any>,
+  next: HttpHandlerFn,
   authService: AuthService
 ): Observable<any> {
   if (!isRefreshing) {
@@ -93,4 +78,4 @@ function handle401Error(
       switchMap(token => next(addToken(request, token!)))
     );
   }
-} 
+}

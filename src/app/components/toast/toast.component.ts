@@ -9,8 +9,8 @@ import { Subscription } from 'rxjs';
   imports: [CommonModule],
   template: `
     <div class="toast-container">
-      <div 
-        *ngFor="let toast of toasts" 
+      <div
+        *ngFor="let toast of toasts"
         class="toast"
         [ngClass]="'toast-' + toast.type"
         (click)="removeToast(toast.id)"
@@ -127,4 +127,5 @@ export class ToastComponent implements OnInit, OnDestroy {
   removeToast(id: string) {
     this.toastService.removeToast(id);
   }
-} 
+}
+

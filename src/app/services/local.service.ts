@@ -1,155 +1,113 @@
 import { Injectable } from '@angular/core';
 
-export interface TokenData {
+export const StorageKey = {
+  UserAccountData: 'user_account_data'
+};
+
+export interface UserAccountData {
   accessToken: string;
   refreshToken: string;
   expiresAt: number;
   rememberMe: boolean;
+  user?: any;
+  projectName?: string;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class LocalService {
-  private readonly ACCESS_TOKEN_KEY = 'access_token';
-  private readonly REFRESH_TOKEN_KEY = 'refresh_token';
-  private readonly TOKEN_EXPIRY_KEY = 'token_expiry';
-  private readonly REMEMBER_ME_KEY = 'remember_me';
-  private readonly USER_DATA_KEY = 'user_data';
-  private readonly PROJECT_NAME_KEY = 'project_name';
-
   constructor() {}
 
-  // Token management
   setTokens(accessToken: string, refreshToken: string, expiresIn: number, rememberMe: boolean = false): void {
-    console.log('LocalService: setTokens called');
-    console.log('LocalService: Access token:', accessToken);
-    console.log('LocalService: Refresh token:', refreshToken);
-    console.log('LocalService: Expires in:', expiresIn);
-    console.log('LocalService: Remember me:', rememberMe);
-    
     const expiresAt = Date.now() + (expiresIn * 1000);
-    console.log('LocalService: Token expires at:', new Date(expiresAt));
-    
-    if (rememberMe) {
-      localStorage.setItem(this.ACCESS_TOKEN_KEY, accessToken);
-      localStorage.setItem(this.REFRESH_TOKEN_KEY, refreshToken);
-      localStorage.setItem(this.TOKEN_EXPIRY_KEY, expiresAt.toString());
-      localStorage.setItem(this.REMEMBER_ME_KEY, 'true');
-      console.log('LocalService: Tokens stored in localStorage');
-    } else {
-      sessionStorage.setItem(this.ACCESS_TOKEN_KEY, accessToken);
-      sessionStorage.setItem(this.REFRESH_TOKEN_KEY, refreshToken);
-      sessionStorage.setItem(this.TOKEN_EXPIRY_KEY, expiresAt.toString());
-      sessionStorage.setItem(this.REMEMBER_ME_KEY, 'false');
-      console.log('LocalService: Tokens stored in sessionStorage');
-    }
-    
-    console.log('LocalService: Token storage complete');
+    const data: UserAccountData = this.getAccountData() || {
+      accessToken: '',
+      refreshToken: '',
+      expiresAt: 0,
+      rememberMe: false
+    };
+
+    data.accessToken = accessToken;
+    data.refreshToken = refreshToken;
+    data.expiresAt = expiresAt;
+    data.rememberMe = rememberMe;
+
+    this.saveAccountData(data);
   }
 
-  getAccessToken(): string | null {
-    const localToken = localStorage.getItem(this.ACCESS_TOKEN_KEY);
-    const sessionToken = sessionStorage.getItem(this.ACCESS_TOKEN_KEY);
-    const token = localToken || sessionToken;
-    
-    console.log('LocalService: getAccessToken called');
-    console.log('LocalService: localStorage token:', localToken);
-    console.log('LocalService: sessionStorage token:', sessionToken);
-    console.log('LocalService: Returning token:', token);
-    
-    return token;
+  private saveAccountData(data: UserAccountData): void {
+    localStorage.setItem(StorageKey.UserAccountData, JSON.stringify(data));
   }
 
-  getRefreshToken(): string | null {
-    return localStorage.getItem(this.REFRESH_TOKEN_KEY) || sessionStorage.getItem(this.REFRESH_TOKEN_KEY);
-  }
-
-  getTokenExpiry(): number | null {
-    const expiry = localStorage.getItem(this.TOKEN_EXPIRY_KEY) || sessionStorage.getItem(this.TOKEN_EXPIRY_KEY);
-    return expiry ? parseInt(expiry, 10) : null;
-  }
-
-  isRememberMe(): boolean {
-    const rememberMe = localStorage.getItem(this.REMEMBER_ME_KEY) || sessionStorage.getItem(this.REMEMBER_ME_KEY);
-    return rememberMe === 'true';
-  }
-
-  isTokenExpired(): boolean {
-    const expiry = this.getTokenExpiry();
-    if (!expiry) return true;
-    return Date.now() >= expiry;
-  }
-
-  updateAccessToken(accessToken: string, expiresIn: number): void {
-    const expiresAt = Date.now() + (expiresIn * 1000);
-    
-    if (this.isRememberMe()) {
-      localStorage.setItem(this.ACCESS_TOKEN_KEY, accessToken);
-      localStorage.setItem(this.TOKEN_EXPIRY_KEY, expiresAt.toString());
-    } else {
-      sessionStorage.setItem(this.ACCESS_TOKEN_KEY, accessToken);
-      sessionStorage.setItem(this.TOKEN_EXPIRY_KEY, expiresAt.toString());
-    }
-  }
-
-  // User data management
-  setUserData(userData: any): void {
-    const data = JSON.stringify(userData);
-    if (this.isRememberMe()) {
-      localStorage.setItem(this.USER_DATA_KEY, data);
-    } else {
-      sessionStorage.setItem(this.USER_DATA_KEY, data);
-    }
-  }
-
-  getUserData(): any {
-    const data = localStorage.getItem(this.USER_DATA_KEY) || sessionStorage.getItem(this.USER_DATA_KEY);
+  private getAccountData(): UserAccountData | null {
+    const data = localStorage.getItem(StorageKey.UserAccountData);
     return data ? JSON.parse(data) : null;
   }
 
-  // Project name management
+  getAccessToken(): string | null {
+    return this.getAccountData()?.accessToken || null;
+  }
+
+  getRefreshToken(): string | null {
+    return this.getAccountData()?.refreshToken || null;
+  }
+
+  isTokenExpired(): boolean {
+    const expiresAt = this.getAccountData()?.expiresAt;
+    return !expiresAt || Date.now() >= expiresAt;
+  }
+
+  updateAccessToken(accessToken: string, expiresIn: number): void {
+    const data = this.getAccountData();
+    if (data) {
+      data.accessToken = accessToken;
+      data.expiresAt = Date.now() + (expiresIn * 1000);
+      this.saveAccountData(data);
+    }
+  }
+
+  setUserData(user: any): void {
+    const data = this.getAccountData() || {
+      accessToken: '',
+      refreshToken: '',
+      expiresAt: 0,
+      rememberMe: false
+    };
+    data.user = user;
+    this.saveAccountData(data);
+  }
+
+  getUserData(): any {
+    return this.getAccountData()?.user || null;
+  }
+
   setProjectName(projectName: string): void {
-    console.log('LocalService: Setting project name:', projectName);
-    if (this.isRememberMe()) {
-      localStorage.setItem(this.PROJECT_NAME_KEY, projectName);
-    } else {
-      sessionStorage.setItem(this.PROJECT_NAME_KEY, projectName);
+    const data = this.getAccountData();
+    if (data) {
+      data.projectName = projectName;
+      this.saveAccountData(data);
     }
   }
 
   getProjectName(): string | null {
-    const projectName = localStorage.getItem(this.PROJECT_NAME_KEY) || sessionStorage.getItem(this.PROJECT_NAME_KEY);
-    console.log('LocalService: Retrieved project name:', projectName);
-    return projectName;
+    return this.getAccountData()?.projectName || null;
   }
 
   clearProjectName(): void {
-    localStorage.removeItem(this.PROJECT_NAME_KEY);
-    sessionStorage.removeItem(this.PROJECT_NAME_KEY);
-    console.log('LocalService: Project name cleared');
+    const data = this.getAccountData();
+    if (data) {
+      delete data.projectName;
+      this.saveAccountData(data);
+    }
   }
 
-  // Cleanup
   clearAll(): void {
-    localStorage.removeItem(this.ACCESS_TOKEN_KEY);
-    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
-    localStorage.removeItem(this.TOKEN_EXPIRY_KEY);
-    localStorage.removeItem(this.REMEMBER_ME_KEY);
-    localStorage.removeItem(this.USER_DATA_KEY);
-    localStorage.removeItem(this.PROJECT_NAME_KEY);
-    
-    sessionStorage.removeItem(this.ACCESS_TOKEN_KEY);
-    sessionStorage.removeItem(this.REFRESH_TOKEN_KEY);
-    sessionStorage.removeItem(this.TOKEN_EXPIRY_KEY);
-    sessionStorage.removeItem(this.REMEMBER_ME_KEY);
-    sessionStorage.removeItem(this.USER_DATA_KEY);
-    sessionStorage.removeItem(this.PROJECT_NAME_KEY);
+    localStorage.removeItem(StorageKey.UserAccountData);
   }
 
-  // Check if user is authenticated
   isAuthenticated(): boolean {
     const token = this.getAccessToken();
     return !!token && !this.isTokenExpired();
   }
-} 
+}

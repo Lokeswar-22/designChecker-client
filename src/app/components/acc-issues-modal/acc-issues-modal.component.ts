@@ -1,13 +1,24 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RuleService, Issue, IssuesResponse } from '../../services/rule.service';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnInit,
+  Output,
+} from '@angular/core';
+import {
+  Issue,
+  IssuesResponse,
+  RuleService,
+} from '../../services/rule.service';
 
 @Component({
   selector: 'app-acc-issues-modal',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './acc-issues-modal.html',
-  styleUrl: './acc-issues-modal.scss'
+  templateUrl: './acc-issues-modal.component.html',
+  styleUrl: './acc-issues-modal.component.scss',
 })
 export class AccIssuesModalComponent implements OnInit, OnChanges {
   @Input() isVisible: boolean = false;
@@ -36,18 +47,17 @@ export class AccIssuesModalComponent implements OnInit, OnChanges {
   loadIssues() {
     this.loading = true;
     this.error = '';
-    
+
     this.ruleService.getIssues().subscribe({
       next: (response: IssuesResponse) => {
         this.issues = response.results;
         this.totalIssues = response.pagination.totalResults;
         this.loading = false;
       },
-      error: (error) => {
-        console.error('Error loading issues:', error);
+      error: () => {
         this.error = 'Failed to load issues. Please try again.';
         this.loading = false;
-      }
+      },
     });
   }
 
@@ -81,4 +91,4 @@ export class AccIssuesModalComponent implements OnInit, OnChanges {
   formatDate(dateString: string): string {
     return new Date(dateString).toLocaleDateString();
   }
-} 
+}

@@ -24,27 +24,26 @@ export interface LoginResponse {
   accessToken?: string;
   refreshToken?: string;
   expiresIn?: number;
-  token?: string; // Alternative field name
+  token?: string;
   user?: {
     id?: string;
-    userID?: number; // Added to match actual API response
+    userID?: number;
     username?: string;
     email?: string;
     firstName?: string;
     lastName?: string;
-    name?: string; // Alternative field name
-    isAccSynced?: boolean; // Added to match actual API response
+    name?: string;
+    isAccSynced?: boolean;
     createdAt?: string;
     modifiedAt?: string;
     deletedAt?: string | null;
   };
-  // Handle different response formats
   success?: boolean;
   message?: string;
   data?: {
     accessToken?: string;
     refreshToken?: string;
-    message?: string; // Added for error messages in data object
+    message?: string;
     user?: {
       userID?: number;
       firstName?: string;
@@ -80,7 +79,7 @@ export interface JwtPayload {
 export class AuthService {
   private currentUserSubject = new BehaviorSubject<any>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
-  
+
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
@@ -107,116 +106,61 @@ export class AuthService {
 
   login(credentials: LoginRequest): Observable<LoginResponse> {
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-    
     return this.http.post<LoginResponse>(environment.authEndpoints.login, credentials, { headers })
       .pipe(
         tap(response => {
-          // Only handle successful login if success is true or undefined (for backward compatibility)
           if (response.success !== false) {
             this.handleSuccessfulLogin(response, credentials.rememberMe || false);
           }
         }),
-        catchError(error => {
-          console.error('Login error:', error);
-          return throwError(() => error);
-        })
+        catchError(error => throwError(() => error))
       );
   }
 
   register(credentials: RegisterRequest): Observable<any> {
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-    
     return this.http.post(environment.authEndpoints.register, credentials, { headers })
-      .pipe(
-        catchError(error => {
-          console.error('Registration error:', error);
-          return throwError(() => error);
-        })
-      );
+      .pipe(catchError(error => throwError(() => error)));
   }
 
   private handleSuccessfulLogin(response: LoginResponse, rememberMe: boolean): void {
-    console.log('AuthService: handleSuccessfulLogin called with response:', response);
-    
-    // Additional safety check - don't process if success is explicitly false
-    if (response.success === false) {
-      console.log('AuthService: Login response indicates failure, not processing');
-      return;
-    }
-    
-    // Handle different response structures
     let accessToken = '';
     let refreshToken = '';
     let userData = {};
-    
+
     if (response.data) {
-      // New response structure with data wrapper
       accessToken = response.data.accessToken || '';
       refreshToken = response.data.refreshToken || '';
       userData = response.data.user || {};
     } else {
-      // Old response structure
       accessToken = response.accessToken || response.token || '';
       refreshToken = response.refreshToken || '';
       userData = response.user || {};
     }
-    
-    const expiresIn = response.expiresIn || 3600; // Default to 1 hour
 
-    console.log('AuthService: Access token from response:', accessToken);
-    console.log('AuthService: Refresh token from response:', refreshToken);
-    console.log('AuthService: Expires in:', expiresIn);
+    const expiresIn = response.expiresIn || 3600;
 
-    // Store tokens
-    this.localService.setTokens(
-      accessToken,
-      refreshToken,
-      expiresIn,
-      rememberMe
-    );
+    this.localService.setTokens(accessToken, refreshToken, expiresIn, rememberMe);
 
-    console.log('AuthService: Tokens stored in local service');
-    console.log('AuthService: Access token in local service:', this.localService.getAccessToken());
-    console.log('AuthService: Local service isAuthenticated:', this.localService.isAuthenticated());
-
-    // Handle different user data formats
     if (userData && (userData as any).name && !(userData as any).firstName) {
-      // Split name into firstName and lastName
       const nameParts = (userData as any).name.split(' ');
       (userData as any).firstName = nameParts[0] || '';
       (userData as any).lastName = nameParts.slice(1).join(' ') || '';
     }
 
-    // Store user data
     this.localService.setUserData(userData);
-
-    // Update subjects
     this.currentUserSubject.next(userData);
     this.isAuthenticatedSubject.next(true);
-    
-    console.log('AuthService: Authentication subjects updated');
-    console.log('AuthService: isAuthenticated subject value:', this.isAuthenticatedSubject.value);
   }
 
   logout(): void {
-    // Mock logout - in production, call actual logout endpoint
     const refreshToken = this.localService.getRefreshToken();
     if (refreshToken) {
-      // Simulate logout API call
-      of({ success: true }).pipe(delay(300)).subscribe({
-        next: () => console.log('Logout successful'),
-        error: (error) => console.error('Logout error:', error)
-      });
+      of({ success: true }).pipe(delay(300)).subscribe();
     }
-
-    // Clear local storage
     this.localService.clearAll();
-
-    // Update subjects
     this.currentUserSubject.next(null);
     this.isAuthenticatedSubject.next(false);
-
-    // Navigate to login
     this.router.navigate(['/login']);
   }
 
@@ -224,9 +168,7 @@ export class AuthService {
     if (this.isRefreshing) {
       return this.refreshTokenSubject.asObservable().pipe(
         map(token => {
-          if (token) {
-            return { accessToken: token, expiresIn: 3600 };
-          }
+          if (token) return { accessToken: token, expiresIn: 3600 };
           throw new Error('No refresh token available');
         })
       );
@@ -241,7 +183,6 @@ export class AuthService {
       return throwError(() => new Error('No refresh token available'));
     }
 
-    // Mock refresh token response
     const mockResponse: RefreshResponse = {
       accessToken: 'mock-refreshed-access-token-' + Date.now(),
       expiresIn: 3600
@@ -257,7 +198,7 @@ export class AuthService {
       catchError(error => {
         this.isRefreshing = false;
         this.refreshTokenSubject.next(null);
-        this.logout(); // Force logout on refresh failure
+        this.logout();
         return throwError(() => error);
       })
     );
@@ -279,35 +220,27 @@ export class AuthService {
     return this.currentUserSubject.value;
   }
 
-  // Public method to refresh authentication state
   refreshAuthState(): void {
-    console.log('Refreshing authentication state...');
     if (this.localService.isAuthenticated()) {
       const userData = this.localService.getUserData();
       if (userData) {
-        console.log('User data found, updating subjects');
         this.currentUserSubject.next(userData);
         this.isAuthenticatedSubject.next(true);
       } else {
-        console.log('No user data found, clearing subjects');
         this.currentUserSubject.next(null);
         this.isAuthenticatedSubject.next(false);
       }
     } else {
-      console.log('Not authenticated, clearing subjects');
       this.currentUserSubject.next(null);
       this.isAuthenticatedSubject.next(false);
     }
   }
 
-  // JWT validation and decoding
   validateToken(token: string): boolean {
     try {
       const decoded = jwtDecode<JwtPayload>(token);
-      const currentTime = Date.now() / 1000;
-      return decoded.exp > currentTime;
+      return decoded.exp > (Date.now() / 1000);
     } catch (error) {
-      console.error('Token validation error:', error);
       return false;
     }
   }
@@ -316,7 +249,6 @@ export class AuthService {
     try {
       return jwtDecode<JwtPayload>(token);
     } catch (error) {
-      console.error('Token decode error:', error);
       return null;
     }
   }
@@ -324,54 +256,33 @@ export class AuthService {
   getTokenExpirationTime(token: string): number | null {
     try {
       const decoded = jwtDecode<JwtPayload>(token);
-      return decoded.exp * 1000; // Convert to milliseconds
+      return decoded.exp * 1000;
     } catch (error) {
-      console.error('Error getting token expiration:', error);
       return null;
     }
   }
 
-  // Check if token will expire soon (within 5 minutes)
   isTokenExpiringSoon(): boolean {
     const token = this.getAccessToken();
     if (!token) return true;
-
     const expirationTime = this.getTokenExpirationTime(token);
     if (!expirationTime) return true;
-
-    const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
-    return (expirationTime - Date.now()) < fiveMinutes;
+    return (expirationTime - Date.now()) < (5 * 60 * 1000);
   }
 
-  // Auto-refresh token if it's expiring soon
   autoRefreshTokenIfNeeded(): Observable<string | null> {
     if (this.isTokenExpiringSoon() && !this.isRefreshing) {
-      return this.refreshToken().pipe(
-        map(response => response.accessToken)
-      );
+      return this.refreshToken().pipe(map(response => response.accessToken));
     }
-    return new Observable(observer => {
-      observer.next(this.getAccessToken());
-      observer.complete();
-    });
+    return of(this.getAccessToken());
   }
 
-  // Check ACC authentication status
   checkAccStatus(): Observable<any> {
     const userData = this.getCurrentUser();
-    if (!userData || (!userData.id && !userData.userID)) {
-      return throwError(() => new Error('No user data available'));
-    }
-
+    if (!userData || (!userData.id && !userData.userID)) return throwError(() => new Error('No user data available'));
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
     const body = { userID: userData.userID || userData.id };
-
     return this.http.post(environment.authEndpoints.checkAccStatus, body, { headers })
-      .pipe(
-        catchError(error => {
-          console.error('ACC status check failed:', error);
-          return throwError(() => error);
-        })
-      );
+      .pipe(catchError(error => throwError(() => error)));
   }
-} 
+}

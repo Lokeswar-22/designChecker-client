@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, HostListener } from '@angular/core';
+import { Component, Output, EventEmitter, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -7,10 +7,10 @@ import { AuthService } from '../../services/auth.service';
   selector: 'app-header',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './header.html',
-  styleUrl: './header.scss'
+  templateUrl: './header.component.html',
+  styleUrl: './header.component.scss'
 })
-export class HeaderComponent {
+export class HeaderComponent implements OnInit {
   @Output() mobileMenuToggle = new EventEmitter<void>();
   isMobile = false;
   currentUser: any = null;
@@ -41,7 +41,6 @@ export class HeaderComponent {
   }
 
   onUserClick() {
-    // Show logout option or navigate to logout
     if (confirm('Do you want to logout?')) {
       this.authService.logout();
     }
@@ -49,19 +48,17 @@ export class HeaderComponent {
 
   getUserDisplayName(): string {
     if (this.currentUser) {
-      // Try to get username from login data first
       if (this.currentUser.username) {
         return this.currentUser.username;
       }
-      // Fallback to firstName + lastName
       if (this.currentUser.firstName || this.currentUser.lastName) {
         return `${this.currentUser.firstName || ''} ${this.currentUser.lastName || ''}`.trim();
       }
-      // Fallback to email
       if (this.currentUser.email) {
         return this.currentUser.email;
       }
     }
     return 'User';
   }
-} 
+}
+

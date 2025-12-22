@@ -5,8 +5,8 @@ import { CommonModule } from '@angular/common';
   selector: 'app-autodesk-loading',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './autodesk-loading.html',
-  styleUrl: './autodesk-loading.scss'
+  templateUrl: './autodesk-loading.component.html',
+  styleUrl: './autodesk-loading.component.scss'
 })
 export class AutodeskLoadingComponent {
   @Input() isVisible = false;
@@ -16,4 +16,5 @@ export class AutodeskLoadingComponent {
   onManualCheck() {
     this.manualCheck.emit();
   }
-} 
+}
+

@@ -5,8 +5,8 @@ import { CommonModule } from '@angular/common';
   selector: 'app-sidebar',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './sidebar.html',
-  styleUrl: './sidebar.scss'
+  templateUrl: './sidebar.component.html',
+  styleUrl: './sidebar.component.scss'
 })
 export class SidebarComponent {
   @Input() showRules: boolean = false;
@@ -46,4 +46,5 @@ export class SidebarComponent {
   onRule5Click() {
     this.rule5Click.emit();
   }
-} 
+}
+

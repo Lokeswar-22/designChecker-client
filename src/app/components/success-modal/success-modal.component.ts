@@ -5,8 +5,8 @@ import { CommonModule } from '@angular/common';
   selector: 'app-success-modal',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './success-modal.html',
-  styleUrl: './success-modal.scss'
+  templateUrl: './success-modal.component.html',
+  styleUrl: './success-modal.component.scss'
 })
 export class SuccessModalComponent {
   @Input() isVisible = false;
@@ -40,4 +40,5 @@ export class SuccessModalComponent {
     }
     return 'User';
   }
-} 
+}
+
