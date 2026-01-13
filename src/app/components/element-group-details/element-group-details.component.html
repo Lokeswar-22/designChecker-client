@@ -1,16 +1,17 @@
 <div class="element-group-details-container">
   <app-header></app-header>
-  
+
   <div class="main-content">
-    <app-sidebar 
+    <app-sidebar
       [showRules]="true"
       (rule1Click)="onRule1Click()"
       (rule2Click)="onRule2Click()"
       (rule3Click)="onRule3Click()"
       (rule4Click)="onRule4Click()"
-      (rule5Click)="onRule5Click()">
+      (rule5Click)="onRule5Click()"
+    >
     </app-sidebar>
-    
+
     <div class="content-area">
       <div class="header-section">
         <button class="back-button" (click)="onBackToDocuments()">
@@ -18,12 +19,18 @@
           Back to Documents
         </button>
         <h1 class="page-title">Element Group Details</h1>
-        <button class="evaluation-button" (click)="toggleEvaluation()">
-          <i class="fas fa-chart-bar"></i>
-          Evaluation
-        </button>
+        <div class="header-buttons">
+          <button class="ai-tool-button" (click)="openAiToolModal()">
+            <i class="fas fa-robot"></i>
+            AI Tool
+          </button>
+          <button class="evaluation-button" (click)="toggleEvaluation()">
+            <i class="fas fa-chart-bar"></i>
+            Evaluation
+          </button>
+        </div>
       </div>
-      
+
       <div class="data-section">
         <!-- 3D Viewer Section -->
         <div class="viewer-section">
@@ -43,22 +50,31 @@
           <div class="spinner"></div>
           <p>Loading element group details...</p>
         </div>
-        
+
         <div *ngIf="error" class="error">
           <p>{{ error }}</p>
         </div>
-        
-        <div *ngIf="!loading && !error && showEvaluation && categories.length > 0" class="categories-section">
+
+        <div
+          *ngIf="!loading && !error && showEvaluation && categories.length > 0"
+          class="categories-section"
+        >
           <h3>Available Categories</h3>
           <div class="categories-grid">
             <div class="category-card" *ngFor="let category of categories">
               <div class="category-header">
-                <h4 class="category-name">{{ category.name || 'Category' }}</h4>
-                <span class="category-count">{{ getTotalCount(category) }} total</span>
+                <h4 class="category-name">{{ category.name || "Category" }}</h4>
+                <span class="category-count"
+                  >{{ getTotalCount(category) }} total</span
+                >
               </div>
-              
+
               <div class="values-grid">
-                <div class="value-card" *ngFor="let item of category.values" (click)="onValueCardClick(item)">
+                <div
+                  class="value-card"
+                  *ngFor="let item of category.values"
+                  (click)="onValueCardClick(item)"
+                >
                   <div class="value-content">
                     <span class="value-text">{{ item.value }}</span>
                     <span class="value-count">{{ item.count }}</span>
@@ -68,8 +84,11 @@
             </div>
           </div>
         </div>
-        
-        <div *ngIf="!loading && !error && categories.length === 0" class="no-data">
+
+        <div
+          *ngIf="!loading && !error && categories.length === 0"
+          class="no-data"
+        >
           <p>No categories available for this element group.</p>
         </div>
       </div>
@@ -78,27 +97,99 @@
 </div>
 
 <!-- Elements Modal -->
-<app-elements-modal 
+<app-elements-modal
   [isVisible]="showElementsModal"
   [elementGroupId]="elementGroupId"
   [accUserId]="accUserId"
   [categoryName]="selectedCategoryName"
-  (close)="onCloseElementsModal()">
+  (close)="onCloseElementsModal()"
+>
 </app-elements-modal>
 
 <!-- Rule Modal -->
-<app-rule-modal 
+<app-rule-modal
   [isVisible]="showRuleModal"
   [elementGroupId]="elementGroupId"
   [accUserId]="accUserId"
   [ruleType]="ruleType"
   (close)="onCloseRuleModal()"
-  (showAccIssues)="onShowAccIssues($event)">
+  (showAccIssues)="onShowAccIssues($event)"
+>
 </app-rule-modal>
 
 <!-- ACC Issues Modal -->
-<app-acc-issues-modal 
+<app-acc-issues-modal
   [isVisible]="showAccIssuesModal"
   [issuesCount]="accIssuesCount"
-  (close)="onCloseAccIssuesModal()">
-</app-acc-issues-modal> 
+  (close)="onCloseAccIssuesModal()"
+>
+</app-acc-issues-modal>
+
+<!-- AI Tool Modal -->
+<div
+  class="ai-tool-modal-overlay"
+  *ngIf="showAiToolModal"
+  (click)="closeAiToolModal()"
+>
+  <div class="ai-tool-modal" (click)="$event.stopPropagation()">
+    <div class="ai-tool-modal-header">
+      <h2>
+        <i class="fas fa-robot"></i>
+        AI Tool
+      </h2>
+      <button class="close-button" (click)="closeAiToolModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="ai-tool-modal-body">
+      <div class="user-info">
+        <i class="fas fa-user"></i>
+        <span>{{ currentUserName }}</span>
+      </div>
+      <div class="prompt-section">
+        <label for="ai-prompt">Enter your message:</label>
+        <textarea
+          id="ai-prompt"
+          class="prompt-input"
+          [(ngModel)]="aiPromptMessage"
+          placeholder="Type your message here..."
+          rows="4"
+          [disabled]="aiLoading"
+        ></textarea>
+        <button
+          class="submit-prompt-button"
+          (click)="onAiPromptSubmit()"
+          [disabled]="aiLoading || !aiPromptMessage.trim()"
+        >
+          <i
+            class="fas"
+            [ngClass]="aiLoading ? 'fa-spinner fa-spin' : 'fa-paper-plane'"
+          ></i>
+          {{ aiLoading ? "Sending..." : "Send" }}
+        </button>
+      </div>
+      <div class="loading-section" *ngIf="aiLoading">
+        <div class="ai-loading">
+          <div class="spinner"></div>
+          <p>AI is thinking...</p>
+        </div>
+      </div>
+      <div class="error-section" *ngIf="aiError && !aiLoading">
+        <div class="error-message">
+          <i class="fas fa-exclamation-circle"></i>
+          <p>{{ aiError }}</p>
+        </div>
+      </div>
+      <div class="response-section" *ngIf="aiResponseMessage && !aiLoading">
+        <div class="response-header">
+          <i class="fas fa-robot"></i>
+          <span>AI Response</span>
+        </div>
+        <div class="response-message">
+          <i class="fas fa-comment-dots"></i>
+          <p>{{ aiResponseMessage }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

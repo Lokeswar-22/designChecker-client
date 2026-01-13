@@ -76,6 +76,9 @@ export class ViewerService {
                       await self._3dviewer.loadExtension(
                         'Autodesk.DocumentBrowser'
                       );
+                      await self._3dviewer.loadExtension(
+                        'Autodesk.AEC.LevelsExtension'
+                      );
                       self._3dviewer
                         .loadExtension('Autodesk.DataVisualization')
                         .catch(() => {});
